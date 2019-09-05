@@ -1,0 +1,11 @@
+/ETF_dfs/
+/stock_dfs/
+/test_dfs/
+/figures/
+/pandas/
+
+Alpha Vantage.txt
+
+*.csv
+*.pyc
+*.pickle
