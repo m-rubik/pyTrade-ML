@@ -24,96 +24,26 @@ import time
 import pickle
 import requests
 
+import src.utilities.dataframe_utilities as dataframe_utilities
+import src.utilities.ticker_utilities as ticker_utilities
+
 from datetime import datetime
 
 import accounts
 
 register_matplotlib_converters()
 
-def save_ETF_tickers():
-    
-    tickers=[]
-
-    # for i in range(1,59):
-    #     print(i)
-    #     resp = requests.get('https://etfdb.com/etfs/region/north-america/#etfs&sort_name=assets_under_management&sort_order=desc&page={}'.format(i))
-    #     soup = bs.BeautifulSoup(resp.text, 'lxml')
-    #     table = soup.find('tbody')
-    #     for row in table.findAll('tr')[1:]:
-    #         security = row.findAll('td')[0].text
-    #         symbol = row.findAll('td')[1].text
-    #         category = row.findAll('td')[3].text
-    #         pair = [security,symbol,category]
-    #         tickers.append(pair)
-
-    # for ticker in tickers:
-    #     symbol = ticker[1]
-    #     if symbol == "VFH":
-    #         print(symbol)
-    #     if symbol == "VEH":
-    #         print(symbol)
-    #     if symbol == "VUN":
-    #         print(symbol)
-    #     if symbol == "VCN":
-    #         print(symbol)
-    #     if symbol == "VGRO":
-    #         print(symbol)
-    #     if symbol == "SPY":
-    #         print(symbol)
-    #     if symbol == "XEC":
-    #         print(symbol)
-    #     if symbol == "XAW":
-    #         print(symbol)
-    #     if symbol == "XIU":
-    #         print(symbol)
-    #     if symbol == "XEF":
-    #         print(symbol)
-
-    tickers.append(['BMO AGGREGATE BOND INDEX ETF','ZAG',''])
-    tickers.append(['ISHARES CORE S&P U.S. TOTAL MARKEY INDEX ETF','XUU',''])
-    tickers.append(['ISHARES CORE MSCI EMG MKTS IMI ETF','XEC',''])
-    tickers.append([' ISHARES CORE SP TSX CAPD COM INX ETF','XIC',''])
-    tickers.append(['ISHARES CORE MSCI EAFE IMI INDEX ETF','XEF',''])
-    tickers.append(['VANGUARD ALL CAP INDEX ETF UNITS','VCN',''])
-
-    with open("ETFtickers.pickle","wb") as f:
-        pickle.dump(tickers,f)
-    
-    return tickers
-
-def save_sp500_tickers():
-    resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-    soup = bs.BeautifulSoup(resp.text, 'lxml')
-    table = soup.find('table', {'class':'wikitable sortable'})
-    tickers=[]
-    for row in table.findAll('tr')[1:]:
-        security = row.findAll('td')[0].text
-        symbol = row.findAll('td')[1].text
-        category = row.findAll('td')[3].text
-        pair = [security,symbol,category]
-        tickers.append(pair)
-        
-    with open("sp500tickers.pickle","wb") as f:
-        pickle.dump(tickers,f)
-    
-    return tickers
-
-def get_data_from_alphaVantage(reload=False,tickerFile="sp500tickers.pickle"):
+def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/sp500tickers.pickle"):
     
     if reload:
-        if tickerFile == "sp500tickers.pickle":
-            tickers = save_sp500_tickers()
-        elif tickerFile == "ETFtickers.pickle":
-            tickers = save_ETF_tickers()
-        else:
-            return 1
+        tickers = ticker_utilities.obtain_tickers(tickerFile)
     else:
-        with open(tickerFile,"rb") as f:
-            tickers = pickle.load(f)
+        tickers = ticker_utilities.import_tickers(tickerFile)
 
-    if tickerFile == "sp500tickers.pickle":
-        folderName = 'stock_dfs'
-    elif tickerFile == "ETFtickers.pickle":
+
+    if tickerFile == "./tickers/sp500tickers.pickle":
+        folderName = 'sp500_dfs'
+    elif tickerFile == "./tickers/ETFTickers.pickle":
         folderName = 'ETF_dfs'
     else:
         return 1
@@ -156,16 +86,16 @@ def get_data_from_alphaVantage(reload=False,tickerFile="sp500tickers.pickle"):
         else:
             print('Already have {}'.format(ticker[1]))
     
-def compile_data(tickerFile="sp500tickers.pickle"):
+def compile_data(tickerFile="./tickers/sp500tickers.pickle"):
     with open(tickerFile, "rb") as f:
         tickers = pickle.load(f)
     
     main_df = pd.DataFrame()
 
     for count,ticker in enumerate(tickers):
-        if tickerFile == "sp500tickers.pickle":
-            datafile = './stock_dfs/{}.csv'.format(ticker[1])
-        elif tickerFile == "ETFtickers.pickle":
+        if tickerFile == "./tickers/sp500tickers.pickle":
+            datafile = './sp500_dfs/{}.csv'.format(ticker[1])
+        elif tickerFile == "./tickers/ETFTickers.pickle":
             datafile = './ETF_dfs/{}.csv'.format(ticker[1])
         else:
             print("What pickle file?",tickerFile)
@@ -188,9 +118,9 @@ def compile_data(tickerFile="sp500tickers.pickle"):
     main_df = main_df.reindex(sorted(main_df.columns), axis=1)
 
     # print(main_df.head())
-    if tickerFile == "sp500tickers.pickle":
+    if tickerFile == "./tickers/sp500tickers.pickle":
         main_df.to_csv('sp500_bysymbol_joined_closes.csv')
-    elif tickerFile == "ETFtickers.pickle":
+    elif tickerFile == "./tickers/ETFTickers.pickle":
         main_df.to_csv('ETF_bysymbol_joined_closes.csv')
     else:
         print("What pickle file?",tickerFile)
@@ -232,9 +162,9 @@ def visualize_data():
 
 def process_data_for_labels(ticker,tickerFile,hm_days):
 
-    if tickerFile == "sp500tickers.pickle":
+    if tickerFile == "./tickers/sp500tickers.pickle":
         datafile = './sp500_bysymbol_joined_closes.csv'
-    elif tickerFile == "ETFtickers.pickle":
+    elif tickerFile == "./tickers/ETFTickers.pickle":
         datafile = 'ETF_bysymbol_joined_closes.csv'
     else:
         print("What pickle file?",tickerFile)
@@ -312,7 +242,7 @@ def extract_featuresets(ticker,tickerFile,hm_days=7):
 
     return X, y, df
 
-def do_ml(ticker,tickerFile="sp500tickers.pickle",hm_days=7,testFraction=0.25,initialQuantity=100):
+def do_ml(ticker,tickerFile="./tickers/sp500tickers.pickle",hm_days=7,testFraction=0.25,initialQuantity=100):
     X, y, df = extract_featuresets(ticker,tickerFile,hm_days)
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testFraction,shuffle=False,stratify = None)
@@ -403,13 +333,13 @@ def do_ml(ticker,tickerFile="sp500tickers.pickle",hm_days=7,testFraction=0.25,in
 
     # plotTicker(ticker,tickerFile,startingDate)
 
-def plotTicker(ticker,tickerFile="sp500tickers.pickle",startingDate=None):
+def plotTicker(ticker,tickerFile="./tickers/sp500tickers.pickle",startingDate=None):
 
     # register_matplotlib_converters()
     
-    if tickerFile == "sp500tickers.pickle":
-        datafolder = './stock_dfs/'
-    elif tickerFile == "ETFtickers.pickle":
+    if tickerFile == "./tickers/sp500tickers.pickle":
+        datafolder = './sp500_dfs/'
+    elif tickerFile == "./tickers/ETFTickers.pickle":
         datafolder = './ETF_dfs/'
     else:
         print("What pickle file?",tickerFile)
@@ -493,17 +423,30 @@ def plotTicker(ticker,tickerFile="sp500tickers.pickle",startingDate=None):
 
     plt.show()
 
-def trackTicker(ticker,initialQuantity,startingDate,tickerFile="sp500tickers.pickle"):
+def add_indicator(dataframe):
+    pass
 
-    if tickerFile == "sp500tickers.pickle":
-        datafolder = './stock_dfs/'
-    elif tickerFile == "ETFtickers.pickle":
+def load_dataframe(ticker, tickerFile="./tickers/sp500tickers.pickle", startingDate=None):
+    if tickerFile == "./tickers/sp500tickers.pickle":
+        datafolder = './sp500_dfs/'
+    elif tickerFile == "./tickers/ETFTickers.pickle":
         datafolder = './ETF_dfs/'
     else:
-        print("What pickle file?",tickerFile)
+        print("Unrecognized ticker file:",tickerFile)
     tickerData = datafolder+ticker+'.csv'
+    try:
+        df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+        df = df.truncate(before=startingDate)
+    except Exception as df:
+        print(df)
+    finally:
+        return df
 
-    df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+
+def trackTicker(ticker,initialQuantity,startingDate,tickerFile="./tickers/sp500tickers.pickle"):
+
+    # Load the dataframe object
+    df = load_dataframe(ticker, tickerFile, startingDate)
 
     myDict = {ticker:initialQuantity}
     initialbalance_in_securities = df.loc[startingDate,'5. adjusted close'] * initialQuantity
@@ -522,8 +465,24 @@ def trackTicker(ticker,initialQuantity,startingDate,tickerFile="sp500tickers.pic
         df.loc[index, 'macd_relChange'] = abs(row.macd-previousRow)*100
         previousRow = row.macd
 
+    df.rename(columns={'4. close': 'close'}, inplace=True)
     ## Get rid of infinite changes
     df = df.replace([np.inf, -np.inf], np.nan)
+    df = df[df.close != 0]
+
+    import ta
+    # Add bollinger band high indicator filling Nans values
+    df['bb_high_indicator'] = ta.bollinger_hband_indicator(df["close"], n=20, ndev=2, fillna=True)
+
+    # Add bollinger band low indicator filling Nans values
+    df['bb_low_indicator'] = ta.bollinger_lband_indicator(df["close"], n=20, ndev=2, fillna=True)
+
+    df['bb_high'] = ta.bollinger_hband(df["close"], n=20, ndev=2, fillna=True)
+    df['bb_low'] = ta.bollinger_lband(df["close"], n=20, ndev=2, fillna=True)
+    # df = ta.add_all_ta_features(df, "1. open", "2. high", "3. low", "4. close", "6. volume", fillna=True)
+
+    df.to_csv('test.csv')
+
     df.fillna(0, inplace=True) ## Get rid of N/A in main dataframe
 
     ### ohlc: open high, low close
@@ -633,27 +592,24 @@ if __name__ == "__main__":
 
     style.use('ggplot')
 
-    # save_ETF_tickers()
-    # save_sp500_tickers()
+    # get_data_from_alphaVantage(False,"./tickers/ETFTickers.pickle")
 
-    # get_data_from_alphaVantage(False,"ETFtickers.pickle")
-
-    # compile_data("ETFtickers.pickle")
+    # compile_data("./tickers/ETFTickers.pickle")
 
     # visualize_data()
 
-    # do_ml(ticker,"ETFtickers.pickle",hm_days=3,testFraction=0.2,initialQuantity=1000)
+    # do_ml(ticker,"./tickers/ETFTickers.pickle",hm_days=3,testFraction=0.2,initialQuantity=1000)
     # do_ml(ticker,hm_days=7,testFraction=0.1,initialQuantity=1000)
 
+    ## GENERATE FULL HISTORY PLOTS
     # tickers = list()
-    # with open("ETFtickers.pickle", "rb") as f:
+    # with open("./tickers/ETFTickers.pickle", "rb") as f:
     #     tickers_full = pickle.load(f)
     # for count,ticker in enumerate(tickers_full):
     #     tickers.append(ticker[1])
-
     # for ticker in tickers:
     #     fileName = './figures/fullhistory/ETF/{}.png'.format(ticker)
     #     if not os.path.exists(fileName): 
-    #         plotTicker(ticker,tickerFile="ETFtickers.pickle",startingDate=None)
+    #         plotTicker(ticker,tickerFile="./tickers/ETFTickers.pickle",startingDate=None)
 
-    trackTicker(ticker,100,'2004-02-02',tickerFile="ETFtickers.pickle")
+    trackTicker(ticker,100,'2004-02-02',tickerFile="./tickers/ETFTickers.pickle")

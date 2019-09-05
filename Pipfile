@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+beautifulsoup4 = "*"
+pandas-datareader = "*"
+alpha-vantage = "*"
+scikit-learn = "*"
+matplotlib = "*"
+mpl-finance = "*"
+ta = "*"
+
+[requires]
+python_version = "3.7"
