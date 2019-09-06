@@ -2,7 +2,7 @@ import pickle
 import requests
 import bs4 as bs
 
-def obtain_tickers(ticker_file="./tickers/sp500tickers.pickle"):
+def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
     if ticker_file == "./tickers/sp500tickers.pickle":
         resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
         soup = bs.BeautifulSoup(resp.text, 'lxml')
@@ -45,12 +45,16 @@ def obtain_tickers(ticker_file="./tickers/sp500tickers.pickle"):
         tickers = []
     return tickers
 
-def export_tickers(tickers, ticker_file="./tickers/sp500tickers.pickle"):
+def export_tickers(tickers, ticker_file="./tickers/ETFTickers.pickle"):
     with open(ticker_file,"wb") as f:
         pickle.dump(tickers,f)
     return 0
 
-def import_tickers(ticker_file="./tickers/sp500tickers.pickle"):
+def import_tickers(ticker_file="./tickers/ETFTickers.pickle"):
     with open(ticker_file,"rb") as f:
         tickers = pickle.load(f)
     return tickers
+
+
+if __name__ == "__main__":
+    tickers = obtain_tickers()

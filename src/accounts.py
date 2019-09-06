@@ -91,13 +91,3 @@ if __name__ == "__main__":
 	transaction_info = {'security':ticker,'quantity':1,'value':df.loc[today, '5. adjusted close'].astype('float64').item()}
 	myAccount.buySecurity(transaction_info)
 
-	# print(df.head())
-
-	df2  = pd.read_csv("./ETF_dfs/XICStupid.csv", parse_dates=True, index_col=0)
-
-	df_merge = pd.concat([df,df2]).drop_duplicates()
-
-	df_merge.to_csv('test.csv')
-
-	# print(df_merge)
-
