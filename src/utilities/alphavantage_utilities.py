@@ -77,7 +77,8 @@ def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pic
                     data.to_csv('temp.csv')
                     df_new = pd.read_csv('temp.csv', parse_dates=True, index_col=0)
                     df_old = pd.read_csv('{}/{}.csv'.format(folderName,ticker[1]), parse_dates=True, index_col=0)
-                    df = pd.concat([df_new,df_old]).drop_duplicates()
+                    df = pd.concat([df_new,df_old]).drop_duplicates() # Merge and drop exact duplicates
+                    # df = df.loc[~df.index.duplicated(keep='first')] # Drops duplicates with updated values, keeping the most recent data
                 else:
                     data.to_csv('{}/{}.csv'.format(folderName,ticker[1]))
                     df = pd.read_csv('{}/{}.csv'.format(folderName,ticker[1]), parse_dates=True, index_col=0)

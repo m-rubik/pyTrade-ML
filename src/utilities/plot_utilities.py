@@ -4,7 +4,9 @@ import src.utilities.dataframe_utilities as dataframe_utilities
 from mpl_finance import candlestick_ohlc
 import matplotlib.dates as mdates
 from matplotlib import style
+from pandas.plotting import register_matplotlib_converters
 
+register_matplotlib_converters()
 style.use('ggplot')
 
 def generate_correlation_plot(df, name="correlation", starting_date=None, show=False, save=True):
@@ -40,28 +42,34 @@ def generate_correlation_plot(df, name="correlation", starting_date=None, show=F
     if show:
         plt.show()
 
-def plot_dataframe(df, ticker, name=None, plot=True):
+def plot_dataframe(df, ticker, name=None, plot=True, starting_date=None):
 
     df = dataframe_utilities.add_indicators(df)
 
+    if starting_date is not None:
+        df = df.truncate(before=starting_date)
+
     ### ohlc: open high, low close
     # df_ohlc = df['5. adjusted close'].resample('10D').ohlc()
-    df_ohlc = df['4. close'].resample('10D').ohlc()
-    df_volume = df['6. volume'].resample('10D').sum()
+    # df_ohlc = df['4. close'].resample('10D').ohlc()
+    # df_volume = df['6. volume'].resample('10D').sum()
 
+    df_ohlc = df.resample("D").agg({'1. open': 'first', '2. high': 'max', '2. low': 'min', '4. close': 'last'})
+    # df_ohlc = df_resampled.ohlc()
+    df_volume = df['6. volume'].resample("D").sum()
     df_ohlc.reset_index(inplace=True)
-
     df_ohlc.dropna(inplace=True)
     df_volume.dropna(inplace=True)
 
-
     df_ohlc['date'] = df_ohlc['date'].map(mdates.date2num)
+
+    df_ohlc.head()
     
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, ncols=1, figsize=(19.2,10.8), dpi = 96, sharex=True,gridspec_kw = {'height_ratios':[2, 1, 1, 0.5]})
 
     ax1.xaxis_date()
 
-    candlestick_ohlc(ax1, df_ohlc.values, width=2, colorup='g')
+    candlestick_ohlc(ax1, df_ohlc.values, width=1, colorup='g')
     ax1.set_xlabel('Time')
     ax1.set_ylabel('Price per Share (USD)')
     titleAX1 = 'Historic Share Price of ' + ticker
@@ -126,5 +134,5 @@ if __name__ == "__main__":
     # df = dataframe_utilities.generate_adjclose_df("./tickers/ETFTickers.pickle")
     # generate_correlation_plot(df=df, name="correlation_2019-04-11", starting_date="2019-04-11", show=True, save=True)
 
-    df = dataframe_utilities.import_dataframe("XIC","./tickers/ETFTickers.pickle")
+    df = dataframe_utilities.import_dataframe("XIC")
     plot_dataframe(df,"XIC","XIC_test", True)

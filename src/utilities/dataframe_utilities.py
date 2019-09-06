@@ -5,7 +5,7 @@ import numpy as np
 import src.utilities.ticker_utilities as ticker_utilities
 
 
-def import_dataframe(ticker, ticker_file="./tickers/sp500tickers.pickle", starting_date=None):
+def import_dataframe(ticker, ticker_file="./tickers/ETFTickers.pickle", starting_date=None):
     if ticker_file == "./tickers/sp500tickers.pickle":
         datafolder = './sp500_dfs/'
     elif ticker_file == "./tickers/ETFTickers.pickle":
@@ -15,7 +15,8 @@ def import_dataframe(ticker, ticker_file="./tickers/sp500tickers.pickle", starti
     tickerData = datafolder+ticker+'.csv'
     try:
         df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
-        df = df.truncate(before=starting_date)
+        if starting_date is not None:
+            df = df.truncate(before=starting_date)
     except Exception as df:
         print(df)
     finally:
@@ -24,7 +25,7 @@ def import_dataframe(ticker, ticker_file="./tickers/sp500tickers.pickle", starti
 def export_dataframe(df, name):
     pass
 
-def generate_adjclose_df(ticker_file="./tickers/sp500tickers.pickle"):
+def generate_adjclose_df(ticker_file="./tickers/ETFTickers.pickle"):
     """
     Generate a dataframe whose columns are:
     date, symbol_1, symbol_2, symbol_3, etc...
