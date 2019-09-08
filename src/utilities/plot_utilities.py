@@ -127,6 +127,97 @@ def plot_dataframe(df, ticker, name=None, plot=True, starting_date=None):
     if plot:
         plt.show()
 
+def plot_account_pie(account):
+    import pandas as pd
+    import datetime
+    data = {}
+    # If today is a weekend, go back to the friday
+    today = datetime.datetime.today()
+    weekday = today.weekday()
+    if weekday == 5:
+        today = datetime.datetime.today() - datetime.timedelta(days=1)
+    elif weekday == 6:
+        today = datetime.datetime.today() - datetime.timedelta(days=2)
+    else:
+        pass
+    today = today.strftime("%Y-%m-%d")
+    for security, quantity in account.securities.items():
+        datafolder = './ETF_dfs/'
+        tickerData = datafolder+security+'.csv'
+        df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+        data[security] = df.loc[today, "5. adjusted close"] * quantity
+
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(19.2,10.8), dpi = 96)
+    ax1.pie(data.values(), labels=data.keys(), autopct='%1.1f%%', startangle=90)
+    ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    titleAX1 = 'Holdings by Share Values'
+    ax1.set_title(titleAX1,horizontalalignment='center', verticalalignment='top')
+    ax2.pie([float(v) for v in account.securities.values()], labels=account.securities.keys(), autopct='%1.1f%%', startangle=90)
+    ax2.axis('equal')
+    titleAX2 = 'Holdings by Share Volume'
+    ax2.set_title(titleAX2,horizontalalignment='center', verticalalignment='top')
+    plt.show()
+
+def plot_account(account):
+    import pandas as pd
+    import datetime
+    dfs = {}
+
+    # If today is a weekend, go back to the friday
+    today = datetime.datetime.today()
+    weekday = today.weekday()
+    if weekday == 5:
+        today = datetime.datetime.today() - datetime.timedelta(days=1)
+    elif weekday == 6:
+        today = datetime.datetime.today() - datetime.timedelta(days=2)
+    else:
+        pass
+    today = today.strftime("%Y-%m-%d")
+
+    for security in account.securities.keys():
+        datafolder = './ETF_dfs/'
+        tickerData = datafolder+security+'.csv'
+        dfs[security] = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(19.2,10.8), dpi = 96)
+    ax1.xaxis_date()
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('Price per Share (USD)')
+    titleAX1 = 'Market History'
+    ax1.set_title(titleAX1,horizontalalignment='center', verticalalignment='top')
+
+    for ticker, df in dfs.items():
+        ax1.plot(df.index, df['1. open'], linewidth=1, label=ticker)
+    ax1.legend(loc="lower left")
+
+    import pandas as pd
+    import datetime
+    data = {}
+    # If today is a weekend, go back to the friday
+    today = datetime.datetime.today()
+    weekday = today.weekday()
+    if weekday == 5:
+        today = datetime.datetime.today() - datetime.timedelta(days=1)
+    elif weekday == 6:
+        today = datetime.datetime.today() - datetime.timedelta(days=2)
+    else:
+        pass
+    today = today.strftime("%Y-%m-%d")
+    for security, quantity in account.securities.items():
+        datafolder = './ETF_dfs/'
+        tickerData = datafolder+security+'.csv'
+        df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+        data[security] = df.loc[today, "5. adjusted close"] * quantity
+
+    print(data)
+
+    ax2.pie(data.values(), labels=data.keys(), autopct='%1.1f%%', startangle=90)
+    ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    titleAX2 = 'Holdings by Share Values'
+    ax2.set_title(titleAX2,horizontalalignment='center', verticalalignment='top')
+
+    plt.show()
+
 
 if __name__ == "__main__":
     import src.utilities.dataframe_utilities as dataframe_utilities

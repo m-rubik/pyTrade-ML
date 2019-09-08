@@ -26,7 +26,16 @@ def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pic
 
     ts = TimeSeries(key='7M23W012GUSSMR90',output_format='pandas',retries=0)
 
-    today = datetime.datetime.now().strftime("%Y-%m-%d")
+    # If today is a weekend, go back to the friday
+    today = datetime.datetime.today()
+    weekday = today.weekday()
+    if weekday == 5:
+        today = datetime.datetime.today() - datetime.timedelta(days=1)
+    elif weekday == 6:
+        today = datetime.datetime.today() - datetime.timedelta(days=2)
+    else:
+        pass
+    today = today.strftime("%Y-%m-%d")
     totalAPICalls = 0
     for ticker in tickers:
         # Check if a dataframe for the ticker already exists
