@@ -2,6 +2,7 @@ import os
 import ta
 import pandas as pd
 import numpy as np
+import datetime
 import src.utilities.ticker_utilities as ticker_utilities
 
 
@@ -106,7 +107,187 @@ def add_indicators(df):
 
     return df
 
+def analyse_volume_indicators(df, date):
+
+    df_day = df.loc[date]
+
+    # TODO: Learn about A/D, OBV, FI, EM, VPT, NVI
+    if df_day["volume_cmf"] > 0:
+        buy_pressure = round(df_day["volume_cmf"] * 100, 2)
+        color_print("CMF BUY pressure at " + str(buy_pressure) + "%")
+    elif df_day["volume_cmf"] < 0:
+        sell_pressure = round(df_day["volume_cmf"] * 100, 2)
+        color_print("CMF SELL pressure at " + str(sell_pressure) + "%")
+    else:
+        color_print("CMF NEUTRAL")
+
+
+def analyse_volatility_indicators(df, date):
+
+    df_day = df.loc[date]
+
+    # TODO: Learn about ATR
+    if df_day["volatility_bbhi"] == 1:
+        color_print("Bollinger Band High Breakout: SELL")
+    if df_day["volatility_bbli"] == 1:
+        color_print("Bollinger Band Low Breakout: BUY")
+    else:
+        color_print("Bollinger Band NEUTRAL")
+    
+    if df_day["volatility_kchi"] == 1:
+        color_print("Keltner Channel High Breakout: BUY")
+    if df_day["volatility_kcli"] == 1:
+        color_print("Keltner Channel Low Breakout: SELL")
+    else:
+        color_print("Keltner Channel NEUTRAL")
+    
+    if df_day["volatility_dchi"] == 1:
+        color_print("Donchian Channel High Breakout: BUY")
+    if df_day["volatility_dcli"] == 1:
+        color_print("Donchian Channel Low Breakout: SELL")
+    else:
+        color_print("Donchian Channel NEUTRAL")
+
+def analyse_trend_indicators(df, date):
+
+    df_day = df.loc[date]
+    yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    df_yesterday = df.loc[yesterday]
+
+    if df_day["trend_macd_signal"] > df_day["trend_macd"] and df_yesterday["trend_macd_signal"] <= df_yesterday["trend_macd"]:
+        color_print("MACD signal SELL")
+    elif df_day["trend_macd_signal"] < df_day["trend_macd"] and df_yesterday["trend_macd_signal"] >= df_yesterday["trend_macd"]:
+        color_print("MACD signal BUY")
+    else:
+        color_print("MACD signal NEUTRAL")
+
+    if df_day["trend_vortex_ind_pos"] > df_day["trend_vortex_ind_neg"] and df_yesterday["trend_vortex_ind_pos"] <= df_yesterday["trend_vortex_ind_neg"]:
+        color_print("Vortex signal BUY")
+    elif df_day["trend_vortex_ind_pos"] < df_day["trend_vortex_ind_neg"] and df_yesterday["trend_vortex_ind_pos"] >= df_yesterday["trend_vortex_ind_neg"]:
+        color_print("Vortex signal SELL")
+    else:
+        color_print("Vortex signal NEUTRAL")
+
+    if df_day["trend_trix"] > 0:
+        strength = round(abs(df_day["trend_trix"]) * 100, 2)
+        color_print("TRIX signal BUY strength " + str(strength))
+    elif df_day["trend_trix"] < 0:
+        strength = round(abs(df_day["trend_trix"]) * 100, 2)
+        color_print("TRIX signal SELL strength " + str(strength))
+    else:
+        color_print("TRIX signal NEUTRAL")
+
+    # TODO: Figure out how to use mass_index
+
+    if df_day["trend_cci"] > 100:
+        color_print("CCI signal BUY")
+    elif df_day["trend_cci"] < -100:
+        color_print("CCI signal SELL")
+    else:
+        color_print("CCI signal NEUTRAL")
+
+    ## TODO: NOT SURE ABOUT THIS
+    # if df_day["trend_kst_sig"] > df_day["trend_kst"] and df_yesterday["trend_kst_sig"] <= df_yesterday["trend_kst"]:
+    #     color_print("KST signal SELL")
+    # elif df_day["trend_kst_sig"] < df_day["trend_kst"] and df_yesterday["trend_kst_sig"] >= df_yesterday["trend_kst"]:
+    #     color_print("KST signal BUY")
+    # else:
+    #     color_print("KST signal neutral")
+
+    if df_day["trend_ichimoku_a"] > df_yesterday["trend_ichimoku_a"] and df_day["trend_ichimoku_a"] > df_day["trend_ichimoku_b"]:
+        color_print("Ichimoku signal BUY")
+    elif df_day["trend_ichimoku_a"] < df_yesterday["trend_ichimoku_a"] and df_day["trend_ichimoku_a"] < df_day["trend_ichimoku_b"]:
+        color_print("Ichimoku signal BUY")
+    else:
+        color_print("Ichimoku signal NEUTRAL")
+
+    if df_day["trend_aroon_ind"] > 0:
+        color_print("AROON signal BUY")
+    if df_day["trend_aroon_ind"] < 0:
+        color_print("AROON signal SELL")
+    else:
+        color_print("AROON signal NEUTRAL")
+
+
+def analyse_momentum_indicators(df, date):
+    df_day = df.loc[date]
+    yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    df_yesterday = df.loc[yesterday]
+
+    if df_day["momentum_rsi"] > 80:
+        color_print("RSI signal STRONG OVERBOUGHT")
+    elif df_day["momentum_rsi"] > 70:
+        color_print("RSI signal OVERBOUGHT")
+    elif df_day["momentum_rsi"] < 20:
+        color_print("RSI signal STRONG OVERSELL")
+    elif df_day["momentum_rsi"] < 30:
+        color_print("RSI signal OVERSELL")
+    else:
+        color_print("RSI signal NEUTRAL")
+
+    if df_day["momentum_mfi"] > 80:
+        color_print("MFI signal STRONG OVERBOUGHT")
+    elif df_day["momentum_mfi"] > 70:
+        color_print("MFI signal OVERBOUGHT")
+    elif df_day["momentum_mfi"] < 20:
+        color_print("MFI signal STRONG OVERSOLD")
+    elif df_day["momentum_mfi"] < 30:
+        color_print("MFI signal OVERSOLD")
+    else:
+        color_print("MFI signal NEUTRAL")
+
+    ## TODO: Figure out how to use TSI, UO
+
+    if df_day["momentum_stoch"] > 80:
+        color_print("STOCHASTIC indicating OVERBOUGHT")
+    elif df_day["momentum_stoch"] < 20:
+        color_print("STOCHASTIC indicating OVERSOLD")
+    else:
+        color_print("STOCHASTIC indicating NEUTRAL")
+
+    if df_day["momentum_stoch"] > df_day["momentum_stoch_signal"] and df_yesterday["momentum_stoch"] <= df_yesterday["momentum_stoch_signal"]:
+        color_print("STOCHASTIC signal BUY")
+    elif df_day["momentum_stoch"] < df_day["momentum_stoch_signal"] and df_yesterday["momentum_stoch"] >= df_yesterday["momentum_stoch_signal"]:
+        color_print("STOCHASTIC signal SELL")
+    else:
+        color_print("STOCHASTIC signal NEUTRAL")
+
+    if df_day["momentum_wr"] < 0 and df_day["momentum_wr"] > -20:
+        color_print("Williams indicating OVERBOUGHT")
+    elif df_day["momentum_wr"] < -80 and df_day["momentum_wr"] > -100:
+        color_print("Williams indicating OVERSOLD")
+    else:
+        color_print("Williams indicating NEUTRAL")
+
+    ## TODO: Add ao
+    
+
+def analyse_df(df, date):
+    ## Analyse volume indicators
+    color_print("==== VOLUME ANALYSIS ====")
+    analyse_volume_indicators(df, date)
+
+    ## Analyse volatility indicators
+    color_print("==== VOLTATILITY ANALYSIS ====")
+    analyse_volatility_indicators(df, date)
+
+    ## Analyse trend indicators
+    color_print("==== TREND ANALYSIS ====")
+    analyse_trend_indicators(df, date)
+
+    ## Analyse momentum indicators
+    color_print("==== MOMENTUM ANALYSIS ====")
+    analyse_momentum_indicators(df, date)
+
+def color_print(text):
+    # text = text.replace("BUY", "\033[0;32m" + " BUY " + "\033[0m")
+    # text = text.replace("SELL", "\033[0;31m" + " SELL " + "\033[0m")
+    # text = text.replace("NEUTRAL", "\033[0;37m" + " NEUTRAL " + "\033[0m")
+    print(text)
+
 
 if __name__ == "__main__":
     # df = generate_adjclose_df("./tickers/ETFTickers.pickle")
     df = import_dataframe("XIC","./tickers/ETFTickers.pickle")
+    df = add_indicators(df)
+    analyse_df(df, "2019-09-10")

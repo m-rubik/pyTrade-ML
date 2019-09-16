@@ -63,11 +63,21 @@ class Account():
 		print(transaction_info)
 		security = transaction_info['security']
 		sellPrice = round(transaction_info['quantity'] * transaction_info['value'],2)
-		if self.securities[security] >= transaction_info['quantity']: 
-			print('Selling',transaction_info['quantity'],'shares of',security,'for',str(sellPrice)+'$')
-			self.securities[security] = self.securities[security] - transaction_info['quantity']
-			self.balance_in_cash = round(self.balance_in_cash + sellPrice,2) - self.broker_fee
+		if self.securities[security] >= transaction_info['quantity']:
+			self.logger.info(transaction_info['date']+": Selling "+str(transaction_info['quantity'])+' shares of '+security+' for '+str(sellPrice)+'$. Price per share = '+str(transaction_info['value'])+"$")
+			# Update current securities information
+			self.securities[security] = self.securities.get(security, 0) - transaction_info['quantity']
+			self.securities_history[transaction_info['date']] = self.securities.copy()
+			# Update current cash balance
+			self.balance_in_cash = round(self.balance_in_cash + sellPrice - self.broker_fee, 2)
+			# Update historic cash balance
+			self.balance_in_cash_history[transaction_info['date']] = self.balance_in_cash
+			# Update current balance in securities
 			self.update_balance_in_securities()
+			self.balance_in_securities_history[transaction_info['date']] = self.balance_in_securities
+			# Update current balance
+			self.update_balance()
+			self.balance_history[transaction_info['date']] = self.balance
 			print('Balance in Securities',self.balance_in_securities,'$')
 			print('Balance in Cash',self.balance_in_cash,'$')
 		else:
@@ -220,33 +230,3 @@ if __name__ == "__main__":
 	myAccount = open_account("Test",0,0,{},0)
 	delete_account(myAccount)
 	myAccount = open_account("Test",0,0,{},0)
-
-	myAccount.deposit(500, "2019-09-04")
-
-	transaction_info = {'security':"XIC",'quantity':5,'value':26.32, 'date':"2019-09-04"}
-	myAccount.buySecurity(transaction_info)
-
-	transaction_info = {'security':"VCN",'quantity':1,'value':33.33, 'date':"2019-09-04"}
-	myAccount.buySecurity(transaction_info)
-
-	transaction_info = {'security':"XEC",'quantity':1,'value':25.03, 'date':"2019-09-04"}
-	myAccount.buySecurity(transaction_info)
-
-	transaction_info = {'security':"XEF",'quantity':3,'value':29.47, 'date':"2019-09-04"}
-	myAccount.buySecurity(transaction_info)
-
-	transaction_info = {'security':"XUU",'quantity':5,'value':29.55, 'date':"2019-09-04"}
-	myAccount.buySecurity(transaction_info)
-
-	transaction_info = {'security':"ZAG",'quantity':3,'value':16.31, 'date':"2019-09-04"}
-	myAccount.buySecurity(transaction_info)
-
-	transaction_info = {'security':"TGOD",'quantity':8,'value':2.96, 'date':"2019-09-05"}
-	myAccount.buySecurity(transaction_info)
-
-	# save_account(myAccount)
-	# a = open_account("Test")
-
-	import src.utilities.plot_utilities as plot_utilities
-	# plot_utilities.plot_account_pie(myAccount)
-	plot_utilities.plot_account(myAccount)

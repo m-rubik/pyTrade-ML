@@ -38,6 +38,7 @@ def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
         tickers.append([' ISHARES CORE SP TSX CAPD COM INX ETF','XIC',''])
         tickers.append(['ISHARES CORE MSCI EAFE IMI INDEX ETF','XEF',''])
         tickers.append(['VANGUARD ALL CAP INDEX ETF UNITS','VCN',''])
+        tickers.append(['VANGUARD CANADIAN AGGREGATE BOND INDEX ETF','VAB',''])
         tickers.append(['GREEN ORGANIC DUTCHMAN HOLDINGS INC','TGOD',''])
 
         export_tickers(tickers, ticker_file)

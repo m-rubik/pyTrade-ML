@@ -142,10 +142,11 @@ def plot_account_pie(account):
         pass
     today = today.strftime("%Y-%m-%d")
     for security, quantity in account.securities.items():
-        datafolder = './ETF_dfs/'
-        tickerData = datafolder+security+'.csv'
-        df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
-        data[security] = df.loc[today, "5. adjusted close"] * quantity
+        if quantity != 0:
+            datafolder = './ETF_dfs/'
+            tickerData = datafolder+security+'.csv'
+            df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+            data[security] = df.loc[today, "5. adjusted close"] * quantity
 
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(19.2,10.8), dpi = 96)
     ax1.pie(data.values(), labels=data.keys(), autopct='%1.1f%%', startangle=90)
@@ -174,10 +175,11 @@ def plot_account(account):
         pass
     today = today.strftime("%Y-%m-%d")
 
-    for security in account.securities.keys():
-        datafolder = './ETF_dfs/'
-        tickerData = datafolder+security+'.csv'
-        dfs[security] = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+    for security, quantity in account.securities.items():
+        if quantity != 0:
+            datafolder = './ETF_dfs/'
+            tickerData = datafolder+security+'.csv'
+            dfs[security] = pd.read_csv(tickerData, parse_dates=True, index_col=0)
 
     fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(19.2,10.8), dpi = 96)
     ax1.xaxis_date()
@@ -204,12 +206,11 @@ def plot_account(account):
         pass
     today = today.strftime("%Y-%m-%d")
     for security, quantity in account.securities.items():
-        datafolder = './ETF_dfs/'
-        tickerData = datafolder+security+'.csv'
-        df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
-        data[security] = df.loc[today, "5. adjusted close"] * quantity
-
-    print(data)
+        if quantity != 0:
+            datafolder = './ETF_dfs/'
+            tickerData = datafolder+security+'.csv'
+            df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+            data[security] = round(df.loc[today, "5. adjusted close"] * quantity, 2)
 
     ax2.pie(data.values(), labels=data.keys(), autopct='%1.1f%%', startangle=90)
     ax2.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
