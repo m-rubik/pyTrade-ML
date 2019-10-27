@@ -227,4 +227,4 @@ if __name__ == "__main__":
     # generate_correlation_plot(df=df, name="correlation_2019-04-11", starting_date="2019-04-11", show=True, save=True)
 
     df = dataframe_utilities.import_dataframe("XIC")
-    plot_dataframe(df,"XIC","XIC_test", True)
+    plot_dataframe(df,"XIC","XIC_test", True, "2019-09-03")

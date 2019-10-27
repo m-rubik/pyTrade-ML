@@ -24,7 +24,7 @@ def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pic
     if not os.path.exists(folderName):
         os.makedirs(folderName)
 
-    ts = TimeSeries(key='7M23W012GUSSMR90',output_format='pandas',retries=0)
+    ts = TimeSeries(key='XXX',output_format='pandas',retries=0)
 
     # If today is a weekend, go back to the friday
     today = datetime.datetime.today()

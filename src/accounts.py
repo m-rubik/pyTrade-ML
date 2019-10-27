@@ -60,8 +60,14 @@ class Account():
 		self.logger.info("Opening new account.")
 	
 	def sellSecurity(self,transaction_info):
-		print(transaction_info)
 		security = transaction_info['security']
+		if security not in self.securities:
+			print("Cannot sell",security+". No holdings in this security.")
+			# Update current balance
+			self.update_balance()
+			return self
+		if transaction_info['quantity'] == "MAX":
+			transaction_info['quantity'] = self.securities[security] # Complete sell-off
 		sellPrice = round(transaction_info['quantity'] * transaction_info['value'],2)
 		if self.securities[security] >= transaction_info['quantity']:
 			self.logger.info(transaction_info['date']+": Selling "+str(transaction_info['quantity'])+' shares of '+security+' for '+str(sellPrice)+'$. Price per share = '+str(transaction_info['value'])+"$")
@@ -73,7 +79,7 @@ class Account():
 			# Update historic cash balance
 			self.balance_in_cash_history[transaction_info['date']] = self.balance_in_cash
 			# Update current balance in securities
-			self.update_balance_in_securities()
+			self.update_balance_in_securities(transaction_info['date'])
 			self.balance_in_securities_history[transaction_info['date']] = self.balance_in_securities
 			# Update current balance
 			self.update_balance()
@@ -87,6 +93,8 @@ class Account():
 
 	def buySecurity(self,transaction_info):
 		security = transaction_info['security']
+		if transaction_info['quantity'] == "MAX":
+			transaction_info['quantity'] = int(self.balance_in_cash / transaction_info['value']) # This automatically rounds down to nearest int
 		buyCost = round(transaction_info['quantity'] * transaction_info['value'],2)
 		if self.balance_in_cash >= buyCost:
 			self.logger.info(transaction_info['date']+": Buying "+str(transaction_info['quantity'])+' shares of '+security+' for '+str(buyCost)+'$. Price per share = '+str(transaction_info['value'])+"$")
@@ -98,7 +106,7 @@ class Account():
 			# Update historic cash balance
 			self.balance_in_cash_history[transaction_info['date']] = self.balance_in_cash
 			# Update current balance in securities
-			self.update_balance_in_securities()
+			self.update_balance_in_securities(transaction_info['date'])
 			self.balance_in_securities_history[transaction_info['date']] = self.balance_in_securities
 			# Update current balance
 			self.update_balance()
@@ -135,17 +143,18 @@ class Account():
 		# self.balance_in_securities = round(self.securities[security] * transaction_info['value'],2)
 		save_account(self)
 
-	def update_balance_in_securities(self):
-		# If today is a weekend, go back to the friday
-		today = datetime.datetime.today()
-		weekday = today.weekday()
-		if weekday == 5:
-			today = datetime.datetime.today() - datetime.timedelta(days=1)
-		elif weekday == 6:
-			today = datetime.datetime.today() - datetime.timedelta(days=2)
-		else:
-			pass
-		today = today.strftime("%Y-%m-%d")
+	def update_balance_in_securities(self, today=None):
+		if today is None:
+			# If today is a weekend, go back to the friday
+			today = datetime.datetime.today()
+			weekday = today.weekday()
+			if weekday == 5:
+				today = datetime.datetime.today() - datetime.timedelta(days=1)
+			elif weekday == 6:
+				today = datetime.datetime.today() - datetime.timedelta(days=2)
+			else:
+				pass
+			today = today.strftime("%Y-%m-%d")
 		self.balance_in_securities = 0
 		for security, quantity in self.securities.items():
 			datafolder = './ETF_dfs/'
@@ -225,8 +234,12 @@ def delete_account(account):
 			print("Please enter y/n")
 	return 0
 	
+# TODO: Add earned dividents to total cash stack
+
+
 if __name__ == "__main__":
 
-	myAccount = open_account("Test",0,0,{},0)
-	delete_account(myAccount)
-	myAccount = open_account("Test",0,0,{},0)
+	# myAccount = open_account("Test",0,0,{},0)
+	# delete_account(myAccount)
+	# myAccount = open_account("Test",0,0,{},0)
+	pass

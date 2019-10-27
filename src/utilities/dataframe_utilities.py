@@ -121,7 +121,6 @@ def analyse_volume_indicators(df, date):
     else:
         color_print("CMF NEUTRAL")
 
-
 def analyse_volatility_indicators(df, date):
 
     df_day = df.loc[date]
@@ -208,7 +207,6 @@ def analyse_trend_indicators(df, date):
     else:
         color_print("AROON signal NEUTRAL")
 
-
 def analyse_momentum_indicators(df, date):
     df_day = df.loc[date]
     yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
@@ -261,7 +259,6 @@ def analyse_momentum_indicators(df, date):
 
     ## TODO: Add ao
     
-
 def analyse_df(df, date):
     ## Analyse volume indicators
     color_print("==== VOLUME ANALYSIS ====")
@@ -285,9 +282,39 @@ def color_print(text):
     # text = text.replace("NEUTRAL", "\033[0;37m" + " NEUTRAL " + "\033[0m")
     print(text)
 
+def add_future_vision(df, buy_threshold, sell_threshold):
+
+    print("Adding future vision...")
+    df['correct_decision'] = 0
+    for i in range(0, df.shape[0]-1):
+        tomorrow_close = df.iloc[i+1]['5. adjusted close']
+        today_close = df.iloc[i]['5. adjusted close']
+        if tomorrow_close > today_close:
+            pct_change = (today_close / tomorrow_close) * 100
+        elif tomorrow_close < today_close:
+            pct_change = -1 * (tomorrow_close / today_close) * 100
+        else:
+            pct_change = 0
+        if pct_change > buy_threshold:
+            df.iloc[i, df.columns.get_loc('correct_decision')] = 1
+        elif pct_change < sell_threshold:
+           df.iloc[i, df.columns.get_loc('correct_decision')] = -1 # SELL
+        else:
+            df.iloc[i, df.columns.get_loc('correct_decision')] = 0 # HOLD
+    df.to_csv('temp3.csv')
+    return df
+
+def add_pct_change(df):
+    print("Adding percent change in adjusted close prices...")
+    df['pct_change'] = df['5. adjusted close'].pct_change()*100 ## Percent change from the day before
+    df = df.replace([np.inf, -np.inf], 0)
+    df.fillna(0, inplace=True)
+    return df
 
 if __name__ == "__main__":
     # df = generate_adjclose_df("./tickers/ETFTickers.pickle")
     df = import_dataframe("XIC","./tickers/ETFTickers.pickle")
-    df = add_indicators(df)
-    analyse_df(df, "2019-09-10")
+    # df = add_indicators(df)
+    # df = add_future_vision(df, 1, -1)
+    # df = add_pct_change(df)
+    # analyse_df(df, "2019-09-10")

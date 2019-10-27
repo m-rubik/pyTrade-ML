@@ -2,6 +2,13 @@ import pickle
 import requests
 import bs4 as bs
 
+#TODO: For ETFs, it would be cool to add the sector weighting.
+# For example: VCN would have something like
+# {"Financials": 0.362,
+#  "Oil & Gas": 0.172,
+#  etc
+# to show the percent holdings of each sector
+
 def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
     if ticker_file == "./tickers/sp500tickers.pickle":
         resp = requests.get('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')

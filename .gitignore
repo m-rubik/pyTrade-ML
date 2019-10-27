@@ -5,6 +5,10 @@
 /pandas/
 /accounts/
 
+/src/strategies/*
+!src/strategies
+!/src/strategies/strategy_template.py
+
 my_account.py
 
 Alpha Vantage.txt
@@ -12,3 +16,5 @@ Alpha Vantage.txt
 *.csv
 *.pyc
 *.pickle
+*.xlsx
+*.png
