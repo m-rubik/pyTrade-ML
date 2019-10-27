@@ -191,7 +191,6 @@ def run_gridsearch_mlp(x_train, x_test, y_train, y_test):
 def run_bagging_classifier(x_train, x_test, y_train, y_test):
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier
-    dt = DecisionTreeClassifier()
     bg = AdaBoostClassifier(DecisionTreeClassifier(), n_estimators=30)
     bg.fit(x_train, y_train)
     print(bg.score(x_test, y_test))

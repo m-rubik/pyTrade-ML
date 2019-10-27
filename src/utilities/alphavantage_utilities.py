@@ -24,7 +24,7 @@ def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pic
     if not os.path.exists(folderName):
         os.makedirs(folderName)
 
-    ts = TimeSeries(key='XXX',output_format='pandas',retries=0)
+    ts = TimeSeries(key='7M23W012GUSSMR90',output_format='pandas')
 
     # If today is a weekend, go back to the friday
     today = datetime.datetime.today()
@@ -50,7 +50,7 @@ def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pic
             if symbol_market == "TSX":
                 try:
                     tickername = 'TSX:'+ticker[1]
-                    data, meta_data = ts.get_daily_adjusted(tickername,outputsize=output_size) # full or compact
+                    data, _ = ts.get_daily_adjusted(tickername,outputsize=output_size) # full or compact
                     totalAPICalls = totalAPICalls + 1
                     print('Retrieved data for:',tickername,'(',ticker[0],')')
                     got_flag = True
@@ -59,7 +59,7 @@ def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pic
                     if output_size == "full":
                         try:
                             tickername = 'TSX:'+ticker[1]
-                            data, meta_data = ts.get_daily_adjusted(tickername,outputsize='compact')
+                            data, _ = ts.get_daily_adjusted(tickername,outputsize='compact')
                             totalAPICalls = totalAPICalls + 1
                             print('Retrieved compact data for:',tickername,'(',ticker[0],')')
                             got_flag = True

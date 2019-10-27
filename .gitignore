@@ -4,6 +4,7 @@
 /figures/
 /pandas/
 /accounts/
+/models/
 
 /src/strategies/*
 !src/strategies
