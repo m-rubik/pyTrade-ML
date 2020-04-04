@@ -19,3 +19,5 @@ Alpha Vantage.txt
 *.pickle
 *.xlsx
 *.png
+
+/.vscode/

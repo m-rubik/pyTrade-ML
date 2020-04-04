@@ -177,19 +177,19 @@ def plot_account(account):
 
     for security, quantity in account.securities.items():
         if quantity != 0:
-            datafolder = './ETF_dfs/'
+            datafolder = './TSX_dfs/'
             tickerData = datafolder+security+'.csv'
             dfs[security] = pd.read_csv(tickerData, parse_dates=True, index_col=0)
 
     fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, figsize=(19.2,10.8), dpi = 96)
     ax1.xaxis_date()
     ax1.set_xlabel('Time')
-    ax1.set_ylabel('Price per Share (USD)')
+    ax1.set_ylabel('Price per Share (CAD)')
     titleAX1 = 'Market History'
     ax1.set_title(titleAX1,horizontalalignment='center', verticalalignment='top')
 
     for ticker, df in dfs.items():
-        ax1.plot(df.index, df['1. open'], linewidth=1, label=ticker)
+        ax1.plot(df.index, df['5. adjusted close'], linewidth=1, label=ticker)
     ax1.legend(loc="lower left")
 
     import pandas as pd
@@ -207,7 +207,7 @@ def plot_account(account):
     today = today.strftime("%Y-%m-%d")
     for security, quantity in account.securities.items():
         if quantity != 0:
-            datafolder = './ETF_dfs/'
+            datafolder = './TSX_dfs/'
             tickerData = datafolder+security+'.csv'
             df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
             data[security] = round(df.loc[today, "5. adjusted close"] * quantity, 2)
@@ -219,7 +219,25 @@ def plot_account(account):
 
     plt.show()
 
+def plot_account_history(account):
+    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(19.2,10.8), dpi = 96)
+    ax1.xaxis_date()
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('Account Value (CAD)')
+    titleAX1 = 'Account Value History'
+    ax1.set_title(titleAX1,horizontalalignment='center', verticalalignment='top')
 
+    for k, v in dict(account.balance_history).items():
+        if k is None:
+            del account.balance_history[k]
+    lists = sorted(account.balance_history.items()) # sorted by key, return a list of tuples
+    x, y = zip(*lists) # unpack a list of pairs into two tuples
+    print(x)
+    print(y)
+    ax1.plot(x, y)
+    plt.show()
+
+   
 if __name__ == "__main__":
     import src.utilities.dataframe_utilities as dataframe_utilities
 

@@ -157,7 +157,7 @@ class Account():
 			today = today.strftime("%Y-%m-%d")
 		self.balance_in_securities = 0
 		for security, quantity in self.securities.items():
-			datafolder = './ETF_dfs/'
+			datafolder = './TSX_dfs/'
 			tickerData = datafolder+security+'.csv'
 			df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
 			## TODO: Bug where the df.loc call returns a series...?
@@ -239,6 +239,10 @@ def delete_account(account):
 
 if __name__ == "__main__":
 
+	from src.utilities.plot_utilities import plot_account, plot_account_history
+
+	myAccount = open_account("FutureVisionStrat",0,0,{},0)
+	plot_account_history(myAccount)
 	# myAccount = open_account("Test",0,0,{},0)
 	# delete_account(myAccount)
 	# myAccount = open_account("Test",0,0,{},0)

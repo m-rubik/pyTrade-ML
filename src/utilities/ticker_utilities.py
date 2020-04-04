@@ -24,9 +24,7 @@ def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
             
         export_tickers(tickers, ticker_file)
     elif ticker_file == "./tickers/ETFTickers.pickle":
-    
         tickers=[]
-
         # for i in range(1,59):
         #     print(i)
         #     resp = requests.get('https://etfdb.com/etfs/region/north-america/#etfs&sort_name=assets_under_management&sort_order=desc&page={}'.format(i))
@@ -38,7 +36,6 @@ def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
         #         category = row.findAll('td')[3].text
         #         pair = [security,symbol,category]
         #         tickers.append(pair)
-
         tickers.append(['BMO AGGREGATE BOND INDEX ETF','ZAG',''])
         tickers.append(['ISHARES CORE S&P U.S. TOTAL MARKEY INDEX ETF','XUU',''])
         tickers.append(['ISHARES CORE MSCI EMG MKTS IMI ETF','XEC',''])
@@ -46,8 +43,15 @@ def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
         tickers.append(['ISHARES CORE MSCI EAFE IMI INDEX ETF','XEF',''])
         tickers.append(['VANGUARD ALL CAP INDEX ETF UNITS','VCN',''])
         tickers.append(['VANGUARD CANADIAN AGGREGATE BOND INDEX ETF','VAB',''])
+        export_tickers(tickers, ticker_file)
+    elif ticker_file == "./tickers/TSXTickers.pickle":
+        tickers=[]
         tickers.append(['GREEN ORGANIC DUTCHMAN HOLDINGS INC','TGOD',''])
-
+        tickers.append(['AURORA CANABIS INC','ACB',''])
+        tickers.append(['','HEXO',''])
+        tickers.append(['','WEED',''])
+        tickers.append(['','APHA',''])
+        tickers.append(['','OGI',''])
         export_tickers(tickers, ticker_file)
     else:
         print("Unrecognized ticker file:", ticker_file)
@@ -63,7 +67,6 @@ def import_tickers(ticker_file="./tickers/ETFTickers.pickle"):
     with open(ticker_file,"rb") as f:
         tickers = pickle.load(f)
     return tickers
-
 
 if __name__ == "__main__":
     tickers = obtain_tickers()

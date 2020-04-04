@@ -44,17 +44,19 @@ def plot_confusion_matrix(confusion_matrix):
     cax = ax.matshow(confusion_matrix, cmap=plt.get_cmap('Blues'))
     plt.title('Confusion matrix of the classifier')
     fig.colorbar(cax)
-    labels = ['Sell','Hold','Buy']
+    if confusion_matrix.shape[0] == 3:
+        labels = ['Sell','Hold','Buy']
+    else:
+        labels = ['Sell','Buy']
     ax.set_xticklabels([''] + labels)
     ax.set_yticklabels([''] + labels)
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    thresh = confusion_matrix.max() / 2.
     for i in range(confusion_matrix.shape[0]):
         for j in range(confusion_matrix.shape[1]):
             ax.text(j, i, format(confusion_matrix[i, j], 'd'),
                     ha="center", va="center",
-                    color="white" if confusion_matrix[i, j] > thresh else "black")
+                    color="black")
     fig.tight_layout()
     plt.show()
 
@@ -62,17 +64,28 @@ def generate_featuresets(df, n_components=3, train_size=0.9, random_state=0, shu
     from sklearn import preprocessing, decomposition
 
     print("Generating feature set...")
-    # X = df[df.columns[9:]].values
-    feature_names = ['pct_change','trend_macd', 'trend_macd_signal', 'volatility_bbli', 'volatility_bbhi']
-    X = df[feature_names].values
-
     if today:
+        # del df['correct_decision']
+        df = df.loc[:, df.columns != 'correct_decision']
+        X = df[df.columns[0:]].values
         x_test = X[-1:]
         x_train = X[:-1]
         y_test = None
         y_train = None
     else:
         y = df['correct_decision'].values
+
+        df = df.loc[:, df.columns != 'correct_decision']
+        # del df['correct_decision']
+        X = df[df.columns[0:]].values
+
+        # feature_names = ['pct_change','trend_macd_diff', 'pct_change_macd_diff', 'momentum_rsi', 'pct_change_momentum_rsi']
+        # X = df[feature_names].values
+
+        # Ignore the most recent value, since we don't know what tomorrow will bring
+        X = X[:-1]
+        y = y[:-1]
+
         x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=train_size, random_state=random_state, shuffle=shuffle)
 
         print("Normalizing feature set...")
@@ -80,13 +93,20 @@ def generate_featuresets(df, n_components=3, train_size=0.9, random_state=0, shu
         x_train = min_max_scaler.fit_transform(x_train)
         x_test = min_max_scaler.fit_transform(x_test)
         
-        # pca = decomposition.PCA(n_components=n_components)
-        # print("Generating PCA fit to reduce feature set to", n_components, "dimensions...")
-        # pca.fit(x_train)
-        # print("Transforming with PCA...")
-        # x_train = pca.transform(x_train)
+        print("Generating PCA fit to reduce feature set to", n_components, "dimensions...")
+        pca = decomposition.PCA(n_components=n_components)
 
-        df.to_csv('./ETF_dfs/temp3.csv')
+        print("Transforming with PCA...")
+        pca.fit(x_train)
+        x_train = pca.transform(x_train)
+        # x_train = min_max_scaler.fit_transform(x_train)
+        x_test = pca.transform(x_test)
+        # x_test = min_max_scaler.fit_transform(x_test)
+
+        principal_df = pd.DataFrame(pca.components_,columns=df[df.columns[0:]].columns)
+        principal_df.to_csv('./TSX_dfs/principals.csv')
+
+        df.to_csv('./TSX_dfs/temp3.csv')
 
     return x_train, x_test, y_train, y_test
 
@@ -144,7 +164,7 @@ def run_voting_classifier(x_train, x_test, y_train, y_test):
     clf.fit(x_train,y_train)
     print("Predicting with classifier...")
     predictions = clf.predict(x_test)
-    export_model(clf, "voting_TGOD")
+    export_model(clf, "voting_ACB")
     return predictions
 
 def run_multilayer_perceptron(x_train, x_test, y_train, y_test):
@@ -172,20 +192,19 @@ def run_gridsearch_mlp(x_train, x_test, y_train, y_test):
     from sklearn.model_selection import GridSearchCV
     clf = GridSearchCV(mlp, parameter_space, n_jobs=-1, cv=3)
     clf.fit(x_train, y_train)
-    # Best parameter set
     print('Best parameters found:\n', clf.best_params_)
 
-    # All results
-    means = clf.cv_results_['mean_test_score']
-    stds = clf.cv_results_['std_test_score']
-    for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
+    ## Print the other results that were found
+    # means = clf.cv_results_['mean_test_score']
+    # stds = clf.cv_results_['std_test_score']
+    # for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+    #     print("%0.3f (+/-%0.03f) for %r" % (mean, std * 2, params))
     y_true, predictions = y_test , clf.predict(x_test)
     from sklearn.metrics import classification_report
     print('Results on the test set:')
     print(classification_report(y_true, predictions))
 
-    export_model(clf, "mlp_gridsearch_TGOD")
+    export_model(clf, "mlp_gridsearch_ACB")
     return predictions
 
 def run_bagging_classifier(x_train, x_test, y_train, y_test):
@@ -197,7 +216,7 @@ def run_bagging_classifier(x_train, x_test, y_train, y_test):
 
 def predict_today(ticker, model_name):
     # Load the dataframe object
-    df = dataframe_utilities.import_dataframe(ticker,"./tickers/ETFTickers.pickle")
+    df = dataframe_utilities.import_dataframe(ticker,"./tickers/TSXTickers.pickle")
     df = dataframe_utilities.add_pct_change(df)
     df = dataframe_utilities.add_indicators(df)
 
@@ -218,52 +237,56 @@ def predict_today(ticker, model_name):
 
 if __name__ == "__main__":
 
-    # predict_today("XIC", "mlp_gridsearch_54")
+    # predict_today("ACB", "mlp_gridsearch_MLP_54")
 
     ## Load the dataframe object
-    df = dataframe_utilities.import_dataframe("TGOD","./tickers/ETFTickers.pickle")
-    df = dataframe_utilities.add_future_vision(df, 2, -2)
-    df = dataframe_utilities.add_pct_change(df)
-    df = dataframe_utilities.add_indicators(df)
+    df = dataframe_utilities.import_dataframe("temp3","./tickers/TSXTickers.pickle")
+    # df = dataframe_utilities.import_dataframe("XIC","./tickers/TSXTickers.pickle")
+    df = dataframe_utilities.add_future_vision(df, buy_threshold=1, sell_threshold=-1)
+    # df = dataframe_utilities.add_pct_change(df)
+    # df = dataframe_utilities.add_indicators(df)
+    # df = dataframe_utilities.add_historic_indicators(df)
     x_train, x_test, y_train, y_test = generate_featuresets(df, n_components=5, today=False)
 
-    ## TO GENERATE A NEW GRDISEARCH CLASSIFIER
-    predictions = run_voting_classifier(x_train, x_test, y_train, y_test)
+    ## TO GENERATE OTHER CLASSIFIERS
+    # predictions = run_voting_classifier(x_train, x_test, y_train, y_test)
     # run_adaboost_classifier(x_train, x_test, y_train, y_test)
-    # predictions = run_gridsearch_mlp(x_train, x_test, y_train, y_test)
-
-    ## TO GENERATE A NEW LSTM CLASSIFIER
     # predictions, y_test = run_lstm(df)
 
+    ## TO GENERATE A NEW GRDISEARCH CLASSIFIER
+    predictions = run_gridsearch_mlp(x_train, x_test, y_train, y_test)
+
     ## TO IMPORT A PRE-EXISTING CLASSIFIER
-    # model = import_model("mlp_gridsearch_54")
+    # model = import_model("mlp_gridsearch_ACB")
     # predictions = model.predict(x_test)
 
     ## TO CHECK ACCURACY
-    from sklearn.metrics import classification_report
-    print('Results on the test set:')
-    print(classification_report(y_test, predictions))
+    # from sklearn.metrics import classification_report
+    # print('Results on the test set:')
+    # print(classification_report(y_test, predictions))
 
-    # print("Classification complete.")
-    # testIndex = df.shape[0]-len(predictions)
-    # df.reset_index(inplace=True)
-    # df = df[testIndex:]
-    # df['prediction'] = predictions
+    print("Classification complete.")
+    testIndex = df.shape[0]-len(predictions)
+    df.reset_index(inplace=True)
+    df = df[testIndex:]
+    df['prediction'] = predictions
 
-    # confidence = metrics.r2_score(y_test, predictions)
-    # print("R^2: ", confidence)
-    # accuracy = metrics.accuracy_score(y_test, predictions) # THESE CAN ONLY BE INTEGERS. YOU CANNOT TEST AGAINST FLOATS
-    # print("Accuracy:", str(round(accuracy*100,2))+"%")
+    confidence = metrics.r2_score(y_test, predictions)
+    print("R^2: ", confidence)
+    accuracy = metrics.accuracy_score(y_test, predictions) # THESE CAN ONLY BE INTEGERS. YOU CANNOT TEST AGAINST FLOATS
+    print("Accuracy:", str(round(accuracy*100,2))+"%")
 
-    # conf = metrics.confusion_matrix(y_test, predictions)
-    # # print('Confusion Matrix: ')
-    # # print(conf)
-    # plot_confusion_matrix(conf)
+    # print(sum(1 for val in predictions if val == 1))
+    # print(sum(1 for val in predictions if val == -1))
+    # print(len(predictions))
 
-    # import matplotlib.pyplot as plt
-    # fig = plt.figure()
-    # ax = fig.add_subplot(1, 1, 1)
-    # ax.scatter(range(0,len(predictions)),predictions)
-    # ax.scatter(range(0,len(y_test)),y_test)
-    # plt.show()
+    conf = metrics.confusion_matrix(y_test, predictions)
+    plot_confusion_matrix(conf)
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.scatter(range(0,len(predictions)),predictions)
+    ax.scatter(range(0,len(y_test)),y_test)
+    plt.show()
 

@@ -11,6 +11,8 @@ def import_dataframe(ticker, ticker_file="./tickers/ETFTickers.pickle", starting
         datafolder = './sp500_dfs/'
     elif ticker_file == "./tickers/ETFTickers.pickle":
         datafolder = './ETF_dfs/'
+    elif ticker_file == "./tickers/TSXTickers.pickle":
+        datafolder = './TSX_dfs/'
     else:
         print("Unrecognized ticker file:", ticker_file)
     tickerData = datafolder+ticker+'.csv'
@@ -96,9 +98,6 @@ def add_indicators(df):
 
     df = ta.add_all_ta_features(df, "1. open", "2. high", "3. low", "4. close", "6. volume", fillna=True)
 
-    df.to_csv('test.csv')
-
-    
     # # Get rid of infinite changes
     # df = df.replace([np.inf, -np.inf], np.nan)
 
@@ -289,19 +288,51 @@ def add_future_vision(df, buy_threshold, sell_threshold):
     for i in range(0, df.shape[0]-1):
         tomorrow_close = df.iloc[i+1]['5. adjusted close']
         today_close = df.iloc[i]['5. adjusted close']
+        tomorrow_low = df.iloc[i+1]['3. low']
+
         if tomorrow_close > today_close:
             pct_change = (today_close / tomorrow_close) * 100
-        elif tomorrow_close < today_close:
-            pct_change = -1 * (tomorrow_close / today_close) * 100
+        # elif tomorrow_close < today_close:
+        #     pct_change = -1 * (tomorrow_close / today_close) * 100
+        elif tomorrow_low < today_close:
+            pct_change = -1 * (tomorrow_low / today_close) * 100
         else:
             pct_change = 0
+
         if pct_change > buy_threshold:
             df.iloc[i, df.columns.get_loc('correct_decision')] = 1
         elif pct_change < sell_threshold:
            df.iloc[i, df.columns.get_loc('correct_decision')] = -1 # SELL
         else:
             df.iloc[i, df.columns.get_loc('correct_decision')] = 0 # HOLD
-    df.to_csv('temp3.csv')
+    return df
+
+def add_historic_indicators(df):
+    """
+    This is for the ML stuff. Since finance data is "continious" (so-to-speak) it is important
+    that each row contains not only the indicators for the day, but also previous days' information.
+    """
+    print("Adding historic information...")
+    df_yesterday = None
+    counter = 0
+    total = len(df)
+    for index, row in df.iterrows():
+        if df_yesterday is None:
+            df_yesterday = row
+            counter += 1
+            continue
+        for column_and_val in row.iteritems(): 
+            column = column_and_val[0]
+            df.loc[index,'yesterday_'+column] = df_yesterday[column]
+        counter += 1
+        print("Completed", counter, "of", total)
+        df_yesterday = row
+    df['pct_change_macd_diff'] = df['trend_macd_diff'].pct_change()*100 ## Percent change from the day before
+    df['pct_change_momentum_rsi'] = df['momentum_rsi'].pct_change()*100 ## Percent change from the day before
+    df = df.replace([np.inf, -np.inf], 0)
+    df.fillna(0, inplace=True)
+    print('Finished adding historic information.')
+    # df.to_csv('./TSX_dfs/messed.csv')
     return df
 
 def add_pct_change(df):
@@ -313,8 +344,9 @@ def add_pct_change(df):
 
 if __name__ == "__main__":
     # df = generate_adjclose_df("./tickers/ETFTickers.pickle")
-    df = import_dataframe("XIC","./tickers/ETFTickers.pickle")
+    df = import_dataframe("temp3","./tickers/TSXTickers.pickle")
     # df = add_indicators(df)
     # df = add_future_vision(df, 1, -1)
     # df = add_pct_change(df)
-    # analyse_df(df, "2019-09-10")
+    df = add_historic_indicators(df)
+    # analyse_df(df, "2019-11-13")

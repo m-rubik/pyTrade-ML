@@ -7,7 +7,7 @@ import datetime
 from alpha_vantage.timeseries import TimeSeries
 import pandas as pd
 
-def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pickle", symbol_market="TSX", output_size="full"):
+def get_data_from_alphaVantage(key, reload=False, tickerFile="./tickers/ETFTickers.pickle", symbol_market="TSX", output_size="full"):
     
     if reload:
         tickers = ticker_utilities.obtain_tickers(tickerFile)
@@ -18,13 +18,15 @@ def get_data_from_alphaVantage(reload=False,tickerFile="./tickers/ETFTickers.pic
         folderName = 'sp500_dfs'
     elif tickerFile == "./tickers/ETFTickers.pickle":
         folderName = 'ETF_dfs'
+    elif tickerFile == "./tickers/TSXTickers.pickle":
+        folderName = "TSX_dfs"
     else:
         return 1
 
     if not os.path.exists(folderName):
         os.makedirs(folderName)
 
-    ts = TimeSeries(key='7M23W012GUSSMR90',output_format='pandas')
+    ts = TimeSeries(key=key, output_format='pandas')
 
     # If today is a weekend, go back to the friday
     today = datetime.datetime.today()
@@ -116,4 +118,5 @@ def cleanup_zeros(df):
     return df
 
 if __name__ == "__main__":
-    get_data_from_alphaVantage()
+    key = "asdsadsds"
+    get_data_from_alphaVantage(key, True, "./tickers/TSXTickers.pickle")
