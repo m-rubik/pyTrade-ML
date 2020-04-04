@@ -1,10 +1,11 @@
-"""
-Generic template for any trading strategy.
-Custom strategies will inherit this template.
+"""!
+This contains the generic template for any trading strategy.
+All custom trading strategies are to inherit this class and implement the run_strategy method.
 """
 
+from abc import ABC, abstractmethod
 
-class Strategy():
+class Strategy(ABC):
 
     buy_conditions = {}
     sell_conditions = {}
@@ -23,16 +24,17 @@ class Strategy():
     def add_hold_condition(self, condition_name, condition):
         self.hold_conditions[condition_name] = condition
 
+    @abstractmethod
     def run_strategy(self, df=None):
         """
-        This is the default method of running a strategy.
-
+        This is where the strategy is to be implemented.
+        
+        EXAMPLE:
         Iterate through a dataframe and for each day...
         1. Check HOLD conditions. If any are true, HOLD
         2. Check BUY conditions. If any are met, BUY
         3. Check SELL conditions. If any are met, SELL
         """
-        raise NotImplementedError
 
         
 

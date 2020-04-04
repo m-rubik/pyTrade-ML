@@ -1,6 +1,7 @@
 
 import src.utilities.dataframe_utilities as dataframe_utilities
 import src.utilities.ticker_utilities as ticker_utilities
+from src.utilities.key_utilities import load_key
 import os
 import time
 import datetime
@@ -118,5 +119,5 @@ def cleanup_zeros(df):
     return df
 
 if __name__ == "__main__":
-    key = "asdsadsds"
+    key = load_key()
     get_data_from_alphaVantage(key, True, "./tickers/TSXTickers.pickle")

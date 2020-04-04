@@ -26,6 +26,7 @@ import requests
 
 import src.utilities.dataframe_utilities as dataframe_utilities
 import src.utilities.ticker_utilities as ticker_utilities
+from src.utilities.key_utilities import load_key
 
 from datetime import datetime
 
@@ -375,7 +376,9 @@ if __name__ == "__main__":
 
     style.use('ggplot')
 
-    # get_data_from_alphasVantage(False,"./tickers/ETFTickers.pickle")
+    key = load_key()
+
+    # get_data_from_alphaVantage(key, False,"./tickers/ETFTickers.pickle")
 
     # compile_data("./tickers/ETFTickers.pickle")
 

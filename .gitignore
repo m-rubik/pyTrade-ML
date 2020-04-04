@@ -12,12 +12,13 @@
 
 my_account.py
 
-Alpha Vantage.txt
-
 *.csv
 *.pyc
 *.pickle
 *.xlsx
 *.png
+*.txt
+
+KEYS
 
 /.vscode/
