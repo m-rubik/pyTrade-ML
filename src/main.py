@@ -3,7 +3,6 @@ import datetime as dt
 import os
 import csv
 import pandas as pd
-import pandas_datareader.data as web
 from pprint import pprint
 from alpha_vantage.timeseries import TimeSeries
 from collections import Counter

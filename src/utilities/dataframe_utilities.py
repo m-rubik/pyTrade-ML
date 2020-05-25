@@ -283,36 +283,36 @@ def color_print(text):
 
 def add_future_vision(df, buy_threshold, sell_threshold):
 
-    print("Adding future vision...")
-    df['correct_decision'] = 0
-    for i in range(0, df.shape[0]-1):
-        tomorrow_close = df.iloc[i+1]['5. adjusted close']
-        today_close = df.iloc[i]['5. adjusted close']
-        tomorrow_low = df.iloc[i+1]['3. low']
+    if 'correct_decision' not in df.keys():
+        print("Adding future vision...")
+        df['correct_decision'] = 0
+        for i in range(0, df.shape[0]-1):
+            tomorrow_close = df.iloc[i+1]['5. adjusted close']
+            today_close = df.iloc[i]['5. adjusted close']
+            tomorrow_low = df.iloc[i+1]['3. low']
 
-        if tomorrow_close > today_close:
-            pct_change = (today_close / tomorrow_close) * 100
-        # elif tomorrow_close < today_close:
-        #     pct_change = -1 * (tomorrow_close / today_close) * 100
-        elif tomorrow_low < today_close:
-            pct_change = -1 * (tomorrow_low / today_close) * 100
-        else:
-            pct_change = 0
+            if tomorrow_close > today_close:
+                pct_change = (today_close / tomorrow_close) * 100
+            # elif tomorrow_close < today_close:
+            #     pct_change = -1 * (tomorrow_close / today_close) * 100
+            elif tomorrow_low < today_close:
+                pct_change = -1 * (tomorrow_low / today_close) * 100
+            else:
+                pct_change = 0
 
-        if pct_change > buy_threshold:
-            df.iloc[i, df.columns.get_loc('correct_decision')] = 1
-        elif pct_change < sell_threshold:
-           df.iloc[i, df.columns.get_loc('correct_decision')] = -1 # SELL
-        else:
-            df.iloc[i, df.columns.get_loc('correct_decision')] = 0 # HOLD
+            if pct_change > buy_threshold:
+                df.iloc[i, df.columns.get_loc('correct_decision')] = 1
+            elif pct_change < sell_threshold:
+                df.iloc[i, df.columns.get_loc('correct_decision')] = -1 # SELL
+            else:
+                df.iloc[i, df.columns.get_loc('correct_decision')] = 0 # HOLD
     return df
 
 def add_historic_indicators(df):
     """
-    This is for the ML stuff. Since finance data is "continious" (so-to-speak) it is important
+    This is for the ML stuff. Since finance data is "contunious" (so-to-speak) it is important
     that each row contains not only the indicators for the day, but also previous days' information.
     """
-    print("Adding historic information...")
     df_yesterday = None
     counter = 0
     total = len(df)
@@ -325,7 +325,7 @@ def add_historic_indicators(df):
             column = column_and_val[0]
             df.loc[index,'yesterday_'+column] = df_yesterday[column]
         counter += 1
-        print("Completed", counter, "of", total)
+        print("Adding history information... Completed:", counter, "of", total)
         df_yesterday = row
     df['pct_change_macd_diff'] = df['trend_macd_diff'].pct_change()*100 ## Percent change from the day before
     df['pct_change_momentum_rsi'] = df['momentum_rsi'].pct_change()*100 ## Percent change from the day before

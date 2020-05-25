@@ -220,11 +220,11 @@ def plot_account(account):
     plt.show()
 
 def plot_account_history(account):
-    fig, (ax1) = plt.subplots(nrows=1, ncols=1, figsize=(19.2,10.8), dpi = 96)
+    fig, ax1 = plt.subplots(nrows=1, ncols=1, figsize=(19.2,10.8), dpi = 96)
     ax1.xaxis_date()
-    ax1.set_xlabel('Time')
-    ax1.set_ylabel('Account Value (CAD)')
-    titleAX1 = 'Account Value History'
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Balance (CAD)')
+    titleAX1 = 'Account Balance History'
     ax1.set_title(titleAX1,horizontalalignment='center', verticalalignment='top')
 
     for k, v in dict(account.balance_history).items():
@@ -232,12 +232,38 @@ def plot_account_history(account):
             del account.balance_history[k]
     lists = sorted(account.balance_history.items()) # sorted by key, return a list of tuples
     x, y = zip(*lists) # unpack a list of pairs into two tuples
-    print(x)
-    print(y)
     ax1.plot(x, y)
     plt.show()
 
-   
+def plot_confusion_matrix(confusion_matrix):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    cax = ax.matshow(confusion_matrix, cmap=plt.get_cmap('Blues'))
+    plt.title('Confusion matrix of the classifier')
+    fig.colorbar(cax)
+    if confusion_matrix.shape[0] == 3:
+        labels = ['Sell','Hold','Buy']
+    else:
+        labels = ['Sell','Buy']
+    ax.set_xticklabels([''] + labels)
+    ax.set_yticklabels([''] + labels)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    for i in range(confusion_matrix.shape[0]):
+        for j in range(confusion_matrix.shape[1]):
+            ax.text(j, i, format(confusion_matrix[i, j], 'd'),
+                    ha="center", va="center",
+                    color="black")
+    fig.tight_layout()
+    plt.show()
+
+def plot_predictions(predictions, y_test):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.scatter(range(0,len(predictions)),predictions)
+    ax.scatter(range(0,len(y_test)),y_test)
+    plt.show()
+
 if __name__ == "__main__":
     import src.utilities.dataframe_utilities as dataframe_utilities
 

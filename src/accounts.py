@@ -94,7 +94,10 @@ class Account():
 	def buySecurity(self,transaction_info):
 		security = transaction_info['security']
 		if transaction_info['quantity'] == "MAX":
-			transaction_info['quantity'] = int(self.balance_in_cash / transaction_info['value']) # This automatically rounds down to nearest int
+			if self.balance_in_cash >= 10000: # Never spend more than 10000 dollars
+				transaction_info['quantity'] = int(10000/transaction_info['value']) # This automatically rounds down to nearest int
+			else:
+				transaction_info['quantity'] = int(self.balance_in_cash / transaction_info['value']) # This automatically rounds down to nearest int
 		buyCost = round(transaction_info['quantity'] * transaction_info['value'],2)
 		if self.balance_in_cash >= buyCost:
 			self.logger.info(transaction_info['date']+": Buying "+str(transaction_info['quantity'])+' shares of '+security+' for '+str(buyCost)+'$. Price per share = '+str(transaction_info['value'])+"$")
@@ -137,10 +140,13 @@ class Account():
 			print("Unable to withdraw", amount+"$. Current cash balance is", self.balance_in_cash+"$.")
 		save_account(self)
 	
-	def holdUpdate(self,transaction_info):
-		self.update_balance_in_securities()
-		# security = transaction_info['security']
-		# self.balance_in_securities = round(self.securities[security] * transaction_info['value'],2)
+	def holdUpdate(self,transaction_info={}):
+		self.logger.info(transaction_info['date']+": Holding all "+transaction_info['security'])
+		self.update_balance_in_securities(today=transaction_info['date'])
+		self.balance_in_cash_history[transaction_info['date']] = self.balance_in_cash
+		self.balance_in_securities_history[transaction_info['date']] = self.balance_in_securities
+		self.update_balance()
+		self.balance_history[transaction_info['date']] = self.balance
 		save_account(self)
 
 	def update_balance_in_securities(self, today=None):
@@ -234,7 +240,7 @@ def delete_account(account):
 			print("Please enter y/n")
 	return 0
 	
-# TODO: Add earned dividents to total cash stack
+# TODO: Add earned dividends to total cash stack
 
 
 if __name__ == "__main__":
