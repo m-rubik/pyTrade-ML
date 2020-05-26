@@ -30,21 +30,6 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import VotingClassifier, RandomForestClassifier, AdaBoostClassifier
 
 
-def export_model(model_manager):
-    import os
-    if not os.path.exists("./models/"):
-	    os.makedirs("./models/")
-    model_file = "./models/"+model_manager.name+".pickle"
-    with open(model_file,"wb+") as f:
-        pickle.dump(model_manager, f)
-    return 0
-
-def import_model(model_name):
-    model_file = "./models/"+model_name+".pickle"
-    with open(model_file,"rb") as f:
-        model = pickle.load(f)
-    return model
-
 class ModelManager():
 
     ticker: str
@@ -155,6 +140,20 @@ class ModelManager():
         # if 0 in prob_per_class_dictionary.keys():
         #     print("HOLD probability: ", str(round(prob_per_class_dictionary[0][1]*100,2))+"%")
 
+def export_model(model_manager):
+    import os
+    if not os.path.exists("./models/"):
+	    os.makedirs("./models/")
+    model_file = "./models/"+model_manager.name+".pickle"
+    with open(model_file,"wb+") as f:
+        pickle.dump(model_manager, f)
+    return 0
+
+def import_model(model_name):
+    model_file = "./models/"+model_name+".pickle"
+    with open(model_file,"rb") as f:
+        model = pickle.load(f)
+    return model
 
 def run_lstm(df):
     from tensorflow.keras.models import Sequential
@@ -228,10 +227,10 @@ if __name__ == "__main__":
     # model_manager.generate_model()
     # model_manager.test_model()
 
-    model_manager = import_model("mlp_HEXO_51")
+    model_manager = import_model("mlp_HEXO_57")
     model_manager.predict_today()
 
-    # plot_confusion_matrix(model.confusion_matrix)
-    # plot_predictions(model.y_pred, model.y_test)
+    plot_confusion_matrix(model_manager.confusion_matrix)
+    plot_predictions(model_manager.y_pred, model_manager.y_test)
 
 
