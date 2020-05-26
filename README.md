@@ -4,10 +4,10 @@ Heavily inspired by [this](https://www.youtube.com/watch?v=2BrpKpWwT2A&list=PLQV
 
 ## Installation
 1. Clone this directory:
-```https://github.com/m-rubik/Account-Manager.git```
+```https://github.com/m-rubik/pyTrade-ML.git```
 
 2. Open the directory:
-```cd Account-Manager```
+```cd pyTrade-ML```
 
 3. If you don't already have pipenv, install it:
 ```pip install pipenv```
