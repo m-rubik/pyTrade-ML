@@ -163,7 +163,7 @@ class Account():
 			today = today.strftime("%Y-%m-%d")
 		self.balance_in_securities = 0
 		for security, quantity in self.securities.items():
-			datafolder = './dataframes/TSX/'
+			datafolder = './dataframes/ETF/'
 			tickerData = datafolder+security+'.csv'
 			df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
 			## TODO: Bug where the df.loc call returns a series...?

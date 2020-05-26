@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pylint = "*"
 
 [packages]
 beautifulsoup4 = "*"
@@ -13,7 +14,6 @@ scikit-learn = "*"
 matplotlib = "*"
 mpl-finance = "*"
 ta = "*"
-tensorflow = "*"
 
 [requires]
 python_version = "3.7"

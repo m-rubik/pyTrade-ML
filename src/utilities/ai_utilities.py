@@ -14,6 +14,7 @@ History of Achievements:
 Date            Accuracy            Type                                Ticker
 10-05-2019      54%                 Multilayer Perceptron (MLP)         XIC
 05-25-2020      59%                 Multilayer Perceptron (MLP)         ACB
+05-26-2020      70%                 Voting                              XUU
 """
 
 import pickle
@@ -21,12 +22,12 @@ import os
 import pandas as pd
 import src.utilities.dataframe_utilities as dataframe_utilities
 from src.utilities.plot_utilities import plot_confusion_matrix, plot_predictions
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn import metrics
+from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.neural_network import MLPClassifier
-from sklearn import svm, neighbors, metrics, preprocessing
+from sklearn.svm import LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
 from sklearn.ensemble import VotingClassifier, RandomForestClassifier, AdaBoostClassifier
 
 
@@ -49,9 +50,16 @@ class ModelManager():
         self.df = dataframe_utilities.import_dataframe(self.ticker, enhanced=True)
         self.df = dataframe_utilities.add_future_vision(self.df, buy_threshold=1, sell_threshold=-1)
 
+        self.dispatch = {
+            "mlp": self.generate_mlp,
+            "adaboost": self.generate_adaboost,
+            "voting": self.generate_voting,
+            "bagging": self.generate_bagging,
+            }
+
     def generate_model(self):
         self.X_train, self.X_test, self.y_train, self.y_test = dataframe_utilities.generate_featuresets(self.df)
-        self.generate_mlp()
+        self.dispatch[self.model_type]()
 
     def generate_mlp(self):
         """
@@ -91,6 +99,34 @@ class ModelManager():
         else:
             mlp.hidden_layer_sizes = (self.num_hn_perlayer,self.num_hn_perlayer,self.num_hn_perlayer)
             self.clf = mlp.fit(self.X_train, self.y_train)
+        self.test_model()
+
+    def generate_adaboost(self):
+        self.clf = AdaBoostClassifier(n_estimators=1000)
+        self.clf.fit(self.X_train, self.y_train)
+        # scores = cross_val_score(self.clf, self.X_train, self.y_train, cv=5)
+        # print(scores.mean()) 
+        self.test_model()
+
+    def generate_voting(self):
+        svc = LinearSVC(max_iter=10000)
+        rfor = RandomForestClassifier(n_estimators=100)
+        knn = KNeighborsClassifier()
+        self.clf = VotingClassifier([('lsvc',svc),('knn',knn),('rfor',rfor)])
+        print("Training classifier...")
+        for classifier, label in zip([svc, knn, rfor], ['lsvc', 'knn', 'rfor']):
+            scores = cross_val_score(classifier, self.X_train, self.y_train, cv=5, scoring='accuracy')
+            print("Accuracy: %0.2f (+/- %0.2f) [%s]" % (scores.mean(), scores.std(), label))
+        self.clf.fit(self.X_train, self.y_train)
+        self.test_model()
+
+    def generate_bagging(self):
+        from sklearn.tree import DecisionTreeClassifier
+        from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier
+        self.clf = AdaBoostClassifier(DecisionTreeClassifier(), n_estimators=30)
+        self.clf.fit(self.X_train, self.y_train)
+        print(self.clf.score(self.X_test, self.y_test))
+        self.test_model()
 
     def test_model(self, save_threshold=50):
         print("Detailed classification report:")
@@ -117,6 +153,30 @@ class ModelManager():
             self.name = self.name+"_"+str(int(round(self.accuracy*100, 0)))
             print("Saving model as", self.name)
             export_model(self)
+
+    # def generate_lstm(self):
+    #     from tensorflow.keras.models import Sequential
+    #     from tensorflow.keras.layers import Dense, Dropout, LSTM
+    #     import numpy as np
+
+    #     self.X_train = np.reshape(self.X_train, (self.X_train.shape[0], self.X_train.shape[1],1))
+
+    #     # create and fit the LSTM network
+    #     model = Sequential()
+    #     model.add(LSTM(units=50, return_sequences=True, input_shape=(self.X_train.shape[1],1),activation='sigmoid'))
+    #     model.add(LSTM(units=50,activation='sigmoid'))
+    #     model.add(Dense(1,activation='sigmoid'))
+
+    #     model.compile(loss='mean_squared_error', optimizer='adam')
+    #     model.fit(self.X_train, self.y_train, epochs=10, batch_size=10, verbose=2)
+
+    #     self.clf = model
+
+    #     self.X_test = np.reshape(self.X_test, (self.X_test.shape[0], self.X_test.shape[1],1))
+    #     closing_price = model.predict(self.X_test)
+    #     # closing_price = min_max_scaler.inverse_transform(closing_price)
+    #     print(closing_price)
+    #     self.test_model()
 
     def predict_today(self):
         _, X_test, _, _ = dataframe_utilities.generate_featuresets(self.df, today=True)
@@ -155,82 +215,17 @@ def import_model(model_name):
         model = pickle.load(f)
     return model
 
-def run_lstm(df):
-    from tensorflow.keras.models import Sequential
-    from tensorflow.keras.layers import Dense, Dropout, LSTM
-
-    print("Generating feature set...")
-    # X = df[df.columns[9:]].values
-    feature_names = ['pct_change']
-    X = df[feature_names].values
-    print("Normalizing feature set...")
-    min_max_scaler = preprocessing.MinMaxScaler()
-    X = min_max_scaler.fit_transform(X)
-    # pca = decomposition.PCA(n_components=1)
-    # print("Generating PCA fit to reduce feature set to",1, "dimensions...")
-    # pca.fit(X)
-    # print("Transforming with PCA...")
-    # X = pca.transform(X)
-
-    y = df['4. close'].values
-    x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=0.9, random_state=0, shuffle=False)
-    import numpy as np
-    x_train = np.reshape(x_train, (x_train.shape[0],x_train.shape[1],1))
-
-    # create and fit the LSTM network
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1],1),activation='sigmoid'))
-    model.add(LSTM(units=50,activation='sigmoid'))
-    model.add(Dense(1,activation='sigmoid'))
-
-    model.compile(loss='mean_squared_error', optimizer='adam')
-    model.fit(x_train, y_train, epochs=10, batch_size=10, verbose=2)
-
-    x_test = np.reshape(x_test, (x_test.shape[0],x_test.shape[1],1))
-    closing_price = model.predict(x_test)
-    closing_price = min_max_scaler.inverse_transform(closing_price)
-    return closing_price, y_test
-
-def run_adaboost_classifier(x_train, x_test, y_train, y_test):
-    clf = AdaBoostClassifier(n_estimators=1000)
-    scores = cross_val_score(clf, x_train, y_train, cv=5)
-    print(scores.mean()) 
-
-def run_voting_classifier(x_train, x_test, y_train, y_test):
-    svc = svm.LinearSVC(max_iter=10000)
-    rfor = RandomForestClassifier(n_estimators=100)
-    knn = neighbors.KNeighborsClassifier()
-    clf = VotingClassifier([('lsvc',svc),('knn',knn),('rfor',rfor)])
-    print("Training classifier...")
-    for clf, label in zip([svc, knn, rfor], ['lsvc', 'knn', 'rfor']):
-        scores = cross_val_score(clf, x_train, y_train, cv=5, scoring='accuracy')
-        print("Accuracy: %0.2f (+/- %0.2f) [%s]" % (scores.mean(), scores.std(), label))
-    clf.fit(x_train,y_train)
-    print("Predicting with classifier...")
-    predictions = clf.predict(x_test)
-    export_model(clf, "voting_ACB")
-    return predictions
-
-def run_bagging_classifier(x_train, x_test, y_train, y_test):
-    from sklearn.tree import DecisionTreeClassifier
-    from sklearn.ensemble import BaggingClassifier, AdaBoostClassifier
-    bg = AdaBoostClassifier(DecisionTreeClassifier(), n_estimators=30)
-    bg.fit(x_train, y_train)
-    print(bg.score(x_test, y_test))
-
-
 if __name__ == "__main__":
 
-    ticker = "HEXO"
+    ticker = "XUU"
 
-    # model_manager = ModelManager(ticker=ticker, model_type="mlp", options={'gridsearch': True})
-    # model_manager.generate_model()
-    # model_manager.test_model()
+    model_manager = ModelManager(ticker=ticker, model_type="voting", options={'gridsearch': True})
+    model_manager.generate_model()
 
-    model_manager = import_model("mlp_HEXO_57")
-    model_manager.predict_today()
+    # model_manager = import_model("mlp_HEXO_57")
+    # model_manager.predict_today()
 
-    plot_confusion_matrix(model_manager.confusion_matrix)
-    plot_predictions(model_manager.y_pred, model_manager.y_test)
+    # plot_confusion_matrix(model_manager.confusion_matrix)
+    # plot_predictions(model_manager.y_pred, model_manager.y_test)
 
 
