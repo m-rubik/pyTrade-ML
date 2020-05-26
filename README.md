@@ -1,13 +1,13 @@
-This account manager obtains data from AlphaVantage, and utilizes machine learning models to predict stock movement.
+This account manager obtains data from [AlphaVantage](https://www.alphavantage.co/), and utilizes machine learning models to predict stock movement.
 
-Heavily inspired by Youtuber "sentdex" series on "Python Programming for Finance".
+Heavily inspired by [this](https://www.youtube.com/watch?v=2BrpKpWwT2A&list=PLQVvvaa0QuDcOdF96TBtRtuQksErCEBYZ) series on "Python Programming for Finance".
 
 ## Installation
 1. Clone this directory:
-```git@github.com:m-rubik/Account-Manager.git```
+```https://github.com/m-rubik/Account-Manager.git```
 
 2. Open the directory:
-```cd Grow-Space```
+```cd Account-Manager```
 
 3. If you don't already have pipenv, install it:
 ```pip install pipenv```

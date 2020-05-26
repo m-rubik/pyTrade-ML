@@ -5,12 +5,18 @@ All custom trading strategies are to inherit this class and implement the run_st
 
 from abc import ABC, abstractmethod
 
+
 class Strategy(ABC):
+    """
+    This is the generic Stategy class.
+    This class is inherited by all implemented strategies.
+    """
 
     buy_conditions = {}
     sell_conditions = {}
     hold_conditions = {}
-    stop_loss = 0 # Initially, there is no stop loss. The stop loss is determined by the value of the first buy.
+    # Initially, there is no stop loss. The stop loss is determined by the value of the first buy.
+    stop_loss = 0
 
     def __init__(self, name=None):
         self.name = name
@@ -28,13 +34,10 @@ class Strategy(ABC):
     def run_strategy(self, df=None):
         """
         This is where the strategy is to be implemented.
-        
+
         EXAMPLE:
         Iterate through a dataframe and for each day...
         1. Check HOLD conditions. If any are true, HOLD
         2. Check BUY conditions. If any are met, BUY
         3. Check SELL conditions. If any are met, SELL
         """
-
-        
-

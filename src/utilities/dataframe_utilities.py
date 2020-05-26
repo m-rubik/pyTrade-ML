@@ -41,6 +41,7 @@ def import_dataframe(ticker, starting_date=None, enhanced=False):
     else:
         return df
 
+
 def find_dataframe(ticker_name):
     found = False
     for ticker_file in os.listdir('./tickers/'):
@@ -48,7 +49,8 @@ def find_dataframe(ticker_name):
             name = ticker_file.split("tickers.pickle")[0]
             ticker_dataframe_path = './dataframes/'+name+"/"+ticker_name
             if os.path.exists(ticker_dataframe_path):
-                df = pd.read_csv(ticker_dataframe_path, parse_dates=True, index_col=0)
+                df = pd.read_csv(ticker_dataframe_path,
+                                 parse_dates=True, index_col=0)
                 found = True
                 break
         except Exception as err:
@@ -59,8 +61,10 @@ def find_dataframe(ticker_name):
     else:
         return df, ticker_dataframe_path
 
+
 def export_dataframe(df, name):
     pass
+
 
 def generate_adjclose_df(ticker_file="./tickers/ETFTickers.pickle"):
     """
@@ -86,7 +90,8 @@ def generate_adjclose_df(ticker_file="./tickers/ETFTickers.pickle"):
             df.set_index('date', inplace=True)
 
             df.rename(columns={'5. adjusted close': ticker[1]}, inplace=True)
-            df.drop(['1. open', '2. high', '3. low', '4. close', '6. volume', '7. dividend amount', '8. split coefficient'], 1, inplace=True)
+            df.drop(['1. open', '2. high', '3. low', '4. close', '6. volume',
+                     '7. dividend amount', '8. split coefficient'], 1, inplace=True)
 
             if main_df.empty:
                 main_df = df
@@ -105,8 +110,9 @@ def generate_adjclose_df(ticker_file="./tickers/ETFTickers.pickle"):
 
     return main_df
 
+
 def add_indicators(df):
-    
+
     print("Adding technical indicators")
     # df['100ma'] = df['5. adjusted close'].rolling(window=100).mean()
     # df['9ema'] = df['5. adjusted close'].ewm(span=9, adjust=False).mean()
@@ -130,7 +136,8 @@ def add_indicators(df):
     # # Add bolling band low
     # df['bb_low'] = ta.bollinger_lband(df["close"], n=20, ndev=2, fillna=True)
 
-    df = ta.add_all_ta_features(df, "1. open", "2. high", "3. low", "4. close", "6. volume", fillna=True)
+    df = ta.add_all_ta_features(
+        df, "1. open", "2. high", "3. low", "4. close", "6. volume", fillna=True)
 
     # # Get rid of infinite changes
     # df = df.replace([np.inf, -np.inf], np.nan)
@@ -139,6 +146,7 @@ def add_indicators(df):
     # df.fillna(0, inplace=True)
 
     return df
+
 
 def analyse_volume_indicators(df, date):
 
@@ -154,6 +162,7 @@ def analyse_volume_indicators(df, date):
     else:
         color_print("CMF NEUTRAL")
 
+
 def analyse_volatility_indicators(df, date):
 
     df_day = df.loc[date]
@@ -165,14 +174,14 @@ def analyse_volatility_indicators(df, date):
         color_print("Bollinger Band Low Breakout: BUY")
     else:
         color_print("Bollinger Band NEUTRAL")
-    
+
     if df_day["volatility_kchi"] == 1:
         color_print("Keltner Channel High Breakout: BUY")
     if df_day["volatility_kcli"] == 1:
         color_print("Keltner Channel Low Breakout: SELL")
     else:
         color_print("Keltner Channel NEUTRAL")
-    
+
     if df_day["volatility_dchi"] == 1:
         color_print("Donchian Channel High Breakout: BUY")
     if df_day["volatility_dcli"] == 1:
@@ -180,10 +189,12 @@ def analyse_volatility_indicators(df, date):
     else:
         color_print("Donchian Channel NEUTRAL")
 
+
 def analyse_trend_indicators(df, date):
 
     df_day = df.loc[date]
-    yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") -
+                 datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     df_yesterday = df.loc[yesterday]
 
     if df_day["trend_macd_signal"] > df_day["trend_macd"] and df_yesterday["trend_macd_signal"] <= df_yesterday["trend_macd"]:
@@ -218,7 +229,7 @@ def analyse_trend_indicators(df, date):
     else:
         color_print("CCI signal NEUTRAL")
 
-    ## TODO: NOT SURE ABOUT THIS
+    # TODO: NOT SURE ABOUT THIS
     # if df_day["trend_kst_sig"] > df_day["trend_kst"] and df_yesterday["trend_kst_sig"] <= df_yesterday["trend_kst"]:
     #     color_print("KST signal SELL")
     # elif df_day["trend_kst_sig"] < df_day["trend_kst"] and df_yesterday["trend_kst_sig"] >= df_yesterday["trend_kst"]:
@@ -240,9 +251,11 @@ def analyse_trend_indicators(df, date):
     else:
         color_print("AROON signal NEUTRAL")
 
+
 def analyse_momentum_indicators(df, date):
     df_day = df.loc[date]
-    yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") -
+                 datetime.timedelta(days=1)).strftime("%Y-%m-%d")
     df_yesterday = df.loc[yesterday]
 
     if df_day["momentum_rsi"] > 80:
@@ -267,7 +280,7 @@ def analyse_momentum_indicators(df, date):
     else:
         color_print("MFI signal NEUTRAL")
 
-    ## TODO: Figure out how to use TSI, UO
+    # TODO: Figure out how to use TSI, UO
 
     if df_day["momentum_stoch"] > 80:
         color_print("STOCHASTIC indicating OVERBOUGHT")
@@ -290,30 +303,33 @@ def analyse_momentum_indicators(df, date):
     else:
         color_print("Williams indicating NEUTRAL")
 
-    ## TODO: Add ao
-    
+    # TODO: Add ao
+
+
 def analyse_df(df, date):
-    ## Analyse volume indicators
+    # Analyse volume indicators
     color_print("==== VOLUME ANALYSIS ====")
     analyse_volume_indicators(df, date)
 
-    ## Analyse volatility indicators
+    # Analyse volatility indicators
     color_print("==== VOLTATILITY ANALYSIS ====")
     analyse_volatility_indicators(df, date)
 
-    ## Analyse trend indicators
+    # Analyse trend indicators
     color_print("==== TREND ANALYSIS ====")
     analyse_trend_indicators(df, date)
 
-    ## Analyse momentum indicators
+    # Analyse momentum indicators
     color_print("==== MOMENTUM ANALYSIS ====")
     analyse_momentum_indicators(df, date)
+
 
 def color_print(text):
     # text = text.replace("BUY", "\033[0;32m" + " BUY " + "\033[0m")
     # text = text.replace("SELL", "\033[0;31m" + " SELL " + "\033[0m")
     # text = text.replace("NEUTRAL", "\033[0;37m" + " NEUTRAL " + "\033[0m")
     print(text)
+
 
 def add_future_vision(df, buy_threshold, sell_threshold):
 
@@ -337,10 +353,11 @@ def add_future_vision(df, buy_threshold, sell_threshold):
             if pct_change > buy_threshold:
                 df.iloc[i, df.columns.get_loc('correct_decision')] = 1
             elif pct_change < sell_threshold:
-                df.iloc[i, df.columns.get_loc('correct_decision')] = -1 # SELL
+                df.iloc[i, df.columns.get_loc('correct_decision')] = -1  # SELL
             else:
-                df.iloc[i, df.columns.get_loc('correct_decision')] = 0 # HOLD
+                df.iloc[i, df.columns.get_loc('correct_decision')] = 0  # HOLD
     return df
+
 
 def add_historic_indicators(df):
     """
@@ -355,26 +372,31 @@ def add_historic_indicators(df):
             df_yesterday = row
             counter += 1
             continue
-        for column_and_val in row.iteritems(): 
+        for column_and_val in row.iteritems():
             column = column_and_val[0]
-            df.loc[index,'yesterday_'+column] = df_yesterday[column]
+            df.loc[index, 'yesterday_'+column] = df_yesterday[column]
         counter += 1
         print("Adding history information... Completed:", counter, "of", total)
         df_yesterday = row
-    df['pct_change_macd_diff'] = df['trend_macd_diff'].pct_change()*100 ## Percent change from the day before
-    df['pct_change_momentum_rsi'] = df['momentum_rsi'].pct_change()*100 ## Percent change from the day before
+    # Percent change from the day before
+    df['pct_change_macd_diff'] = df['trend_macd_diff'].pct_change()*100
+    # Percent change from the day before
+    df['pct_change_momentum_rsi'] = df['momentum_rsi'].pct_change()*100
     df = df.replace([np.inf, -np.inf], 0)
     df.fillna(0, inplace=True)
     print('Finished adding historic information.')
     # df.to_csv('./TSX_dfs/messed.csv')
     return df
 
+
 def add_pct_change(df):
     print("Adding percent change in adjusted close prices...")
-    df['pct_change'] = df['5. adjusted close'].pct_change()*100 ## Percent change from the day before
+    # Percent change from the day before
+    df['pct_change'] = df['5. adjusted close'].pct_change()*100
     df = df.replace([np.inf, -np.inf], 0)
     df.fillna(0, inplace=True)
     return df
+
 
 def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, pca_components=5, today=False):
     from sklearn import preprocessing, decomposition
@@ -407,12 +429,13 @@ def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, p
             # Ignore the most recent value, since we don't know what tomorrow will bring
             X = X[:-1]
             y = y[:-1]
-            x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=train_size, random_state=random_state, shuffle=shuffle)
+            x_train, x_test, y_train, y_test = train_test_split(
+                X, y, train_size=train_size, random_state=random_state, shuffle=shuffle)
             print("Normalizing feature set...")
             scaler = StandardScaler()
             x_train = scaler.fit_transform(x_train)
             x_test = scaler.transform(x_test)
-            
+
         # print("Generating PCA fit to reduce feature set to", n_components, "dimensions...")
         # pca = PCA(n_components=n_components)
 
@@ -424,12 +447,12 @@ def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, p
         # principal_df = pd.DataFrame(pca.components_,columns=df[df.columns[0:]].columns)
         # principal_df.to_csv('./TSX_dfs/principals.csv')
 
-    return x_train, x_test, y_train, y_test    
+    return x_train, x_test, y_train, y_test
 
 
 if __name__ == "__main__":
     # df = generate_adjclose_df("./tickers/ETFTickers.pickle")
-    df = import_dataframe("temp3","./tickers/TSXTickers.pickle")
+    df = import_dataframe("temp3", "./tickers/TSXTickers.pickle")
     # df = add_indicators(df)
     # df = add_future_vision(df, 1, -1)
     # df = add_pct_change(df)

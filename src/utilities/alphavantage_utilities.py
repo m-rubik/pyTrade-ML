@@ -8,8 +8,9 @@ import datetime
 from alpha_vantage.timeseries import TimeSeries
 import pandas as pd
 
+
 def get_data_from_alphaVantage(key, reload=False, tickerFile="./tickers/ETFTickers.pickle", symbol_market="TSX", output_size="full"):
-    
+
     if reload:
         tickers = ticker_utilities.obtain_tickers(tickerFile)
     else:
@@ -42,64 +43,76 @@ def get_data_from_alphaVantage(key, reload=False, tickerFile="./tickers/ETFTicke
     totalAPICalls = 0
     for ticker in tickers:
         # Check if a dataframe for the ticker already exists
-        if os.path.exists('{}/{}.csv'.format(folderName,ticker[1])):
-            df = pd.read_csv('{}/{}.csv'.format(folderName,ticker[1]))
+        if os.path.exists('{}/{}.csv'.format(folderName, ticker[1])):
+            df = pd.read_csv('{}/{}.csv'.format(folderName, ticker[1]))
             df.set_index('date', inplace=True)
             # Check if ticker information is up to date
             if today in df.index:
-                print(ticker[1],"is up to date.")
+                print(ticker[1], "is up to date.")
                 continue
-        if totalAPICalls < 500: # Max of 500 API requests per day on free license 
+        if totalAPICalls < 500:  # Max of 500 API requests per day on free license
             if symbol_market == "TSX":
                 try:
                     tickername = 'TSX:'+ticker[1]
-                    data, _ = ts.get_daily_adjusted(tickername,outputsize=output_size) # full or compact
+                    data, _ = ts.get_daily_adjusted(
+                        tickername, outputsize=output_size)  # full or compact
                     totalAPICalls = totalAPICalls + 1
-                    print('Retrieved data for:',tickername,'(',ticker[0],')')
+                    print('Retrieved data for:',
+                          tickername, '(', ticker[0], ')')
                     got_flag = True
                 except Exception as e:
-                    print("Error retrieving data for",tickername+":",e)
+                    print("Error retrieving data for", tickername+":", e)
                     if output_size == "full":
                         try:
                             tickername = 'TSX:'+ticker[1]
-                            data, _ = ts.get_daily_adjusted(tickername,outputsize='compact')
+                            data, _ = ts.get_daily_adjusted(
+                                tickername, outputsize='compact')
                             totalAPICalls = totalAPICalls + 1
-                            print('Retrieved compact data for:',tickername,'(',ticker[0],')')
+                            print('Retrieved compact data for:',
+                                  tickername, '(', ticker[0], ')')
                             got_flag = True
                         except Exception as e:
-                            print("Error retrieving data for",tickername+":",e)
+                            print("Error retrieving data for",
+                                  tickername+":", e)
                             got_flag = False
-                            time.sleep(13) # Max 5 API requests per minute.
+                            time.sleep(13)  # Max 5 API requests per minute.
                     else:
-                        time.sleep(13) # Max 5 API requests per minute.
+                        time.sleep(13)  # Max 5 API requests per minute.
                         got_flag = False
             else:
                 try:
-                    data, meta_data = ts.get_daily_adjusted(ticker[1],outputsize=output_size)
+                    data, meta_data = ts.get_daily_adjusted(
+                        ticker[1], outputsize=output_size)
                     totalAPICalls = totalAPICalls + 1
-                    print('Retrieved data for:',ticker[1],'(',ticker[0],')')
+                    print('Retrieved data for:',
+                          ticker[1], '(', ticker[0], ')')
                     got_flag = True
                 except Exception as e:
-                    print("Error retrieving data for",ticker[1]+":",e)
-                    time.sleep(13) # Max 5 API requests per minute.
+                    print("Error retrieving data for", ticker[1]+":", e)
+                    time.sleep(13)  # Max 5 API requests per minute.
                     got_flag = False
 
             if got_flag:
-                if os.path.exists('{}/{}.csv'.format(folderName,ticker[1])):
+                if os.path.exists('{}/{}.csv'.format(folderName, ticker[1])):
                     data.to_csv('temp.csv')
-                    df_new = pd.read_csv('temp.csv', parse_dates=True, index_col=0)
-                    df_old = pd.read_csv('{}/{}.csv'.format(folderName,ticker[1]), parse_dates=True, index_col=0)
-                    df = pd.concat([df_new,df_old]).drop_duplicates() # Merge and drop exact duplicates
-                    df = df.loc[~df.index.duplicated(keep='first')] # Drops duplicates with updated values, keeping the most recent data
+                    df_new = pd.read_csv(
+                        'temp.csv', parse_dates=True, index_col=0)
+                    df_old = pd.read_csv(
+                        '{}/{}.csv'.format(folderName, ticker[1]), parse_dates=True, index_col=0)
+                    # Merge and drop exact duplicates
+                    df = pd.concat([df_new, df_old]).drop_duplicates()
+                    # Drops duplicates with updated values, keeping the most recent data
+                    df = df.loc[~df.index.duplicated(keep='first')]
                 else:
-                    data.to_csv('{}/{}.csv'.format(folderName,ticker[1]))
-                    df = pd.read_csv('{}/{}.csv'.format(folderName,ticker[1]), parse_dates=True, index_col=0)
-                df.sort_index(axis = 0, inplace=True)
+                    data.to_csv('{}/{}.csv'.format(folderName, ticker[1]))
+                    df = pd.read_csv(
+                        '{}/{}.csv'.format(folderName, ticker[1]), parse_dates=True, index_col=0)
+                df.sort_index(axis=0, inplace=True)
                 df = cleanup_zeros(df)
-                df.to_csv('{}/{}.csv'.format(folderName,ticker[1]))
-                time.sleep(13) # Max 5 API requests per minute.
+                df.to_csv('{}/{}.csv'.format(folderName, ticker[1]))
+                time.sleep(13)  # Max 5 API requests per minute.
         else:
-            print("Already used 500 API requests. Have to wait 24 hours now.") 
+            print("Already used 500 API requests. Have to wait 24 hours now.")
 
 
 def cleanup_zeros(df):
@@ -117,6 +130,7 @@ def cleanup_zeros(df):
                 print(err)
         previous_row = row
     return df
+
 
 if __name__ == "__main__":
     key = load_key()

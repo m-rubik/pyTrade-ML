@@ -30,6 +30,7 @@ def add_key(key):
         flag = export_object("KEYS", key_list)
     return flag
 
+
 def load_key(index=0):
     """!
     Load a key in the list by index
@@ -40,6 +41,7 @@ def load_key(index=0):
         return key_list[index]
     else:
         return None
+
 
 def remove_key(key):
     key_list = import_object("KEYS")
@@ -54,6 +56,7 @@ def remove_key(key):
         flag = 1
     return flag
 
+
 def unittest():
     add_key("test")
     print(load_key())
@@ -63,4 +66,3 @@ def unittest():
 if __name__ == "__main__":
     # add_key("XXXXXXXXXXXXXXXXX")
     load_key()
-
