@@ -6,24 +6,58 @@ import datetime
 import src.utilities.ticker_utilities as ticker_utilities
 
 
-def import_dataframe(ticker, ticker_file="./tickers/ETFTickers.pickle", starting_date=None):
-    if ticker_file == "./tickers/sp500tickers.pickle":
-        datafolder = './sp500_dfs/'
-    elif ticker_file == "./tickers/ETFTickers.pickle":
-        datafolder = './ETF_dfs/'
-    elif ticker_file == "./tickers/TSXTickers.pickle":
-        datafolder = './TSX_dfs/'
-    else:
-        print("Unrecognized ticker file:", ticker_file)
-    tickerData = datafolder+ticker+'.csv'
-    try:
-        df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
+def import_dataframe(ticker, starting_date=None, enhanced=False):
+    """
+    Import the dataframe containing historical intraday data for a ticker
+    """
+
+    if enhanced:
+        df, path = find_dataframe(ticker+'_enhanced.csv')
+        if df is not None:
+            if starting_date is not None:
+                try:
+                    df = df.truncate(before=starting_date)
+                except Exception as err:
+                    print(err)
+                finally:
+                    return df
+            else:
+                return df
+    df, path = find_dataframe(ticker+'.csv')
+    if df is not None:
+        if enhanced:
+            df = add_indicators(df)
+            df = add_historic_indicators(df)
+            df = add_pct_change(df)
+            df.to_csv(path.split(ticker+'.csv')[0]+ticker+"_enhanced.csv")
         if starting_date is not None:
-            df = df.truncate(before=starting_date)
-    except Exception as df:
-        print(df)
-    finally:
+            try:
+                df = df.truncate(before=starting_date)
+            except Exception as err:
+                print(err)
+            finally:
+                return df
         return df
+    else:
+        return df
+
+def find_dataframe(ticker_name):
+    found = False
+    for ticker_file in os.listdir('./tickers/'):
+        try:
+            name = ticker_file.split("tickers.pickle")[0]
+            ticker_dataframe_path = './dataframes/'+name+"/"+ticker_name
+            if os.path.exists(ticker_dataframe_path):
+                df = pd.read_csv(ticker_dataframe_path, parse_dates=True, index_col=0)
+                found = True
+                break
+        except Exception as err:
+            print(err)
+            break
+    if not found:
+        return None
+    else:
+        return df, ticker_dataframe_path
 
 def export_dataframe(df, name):
     pass
@@ -342,11 +376,62 @@ def add_pct_change(df):
     df.fillna(0, inplace=True)
     return df
 
+def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, pca_components=5, today=False):
+    from sklearn import preprocessing, decomposition
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.model_selection import train_test_split
+
+    print("Generating feature set...")
+    y = df['correct_decision'].values
+    df = df.loc[:, df.columns != 'correct_decision']
+    X = df[df.columns[0:]].values
+    if today:
+        # use the latest value
+        x_test = X[-1:]
+        x_train = X[:-1]
+
+        y_test = None
+        y_train = None
+    else:
+        # feature_names = ['pct_change','trend_macd_diff', 'pct_change_macd_diff', 'momentum_rsi', 'pct_change_momentum_rsi']
+        # X = df[feature_names].values
+        if train_size == 0:
+            x_train = None
+            y_train = None
+            x_test = X
+            y_test = y
+            print("Normalizing feature set...")
+            scaler = StandardScaler()
+            x_test = scaler.fit_transform(x_test)
+        else:
+            # Ignore the most recent value, since we don't know what tomorrow will bring
+            X = X[:-1]
+            y = y[:-1]
+            x_train, x_test, y_train, y_test = train_test_split(X, y, train_size=train_size, random_state=random_state, shuffle=shuffle)
+            print("Normalizing feature set...")
+            scaler = StandardScaler()
+            x_train = scaler.fit_transform(x_train)
+            x_test = scaler.transform(x_test)
+            
+        # print("Generating PCA fit to reduce feature set to", n_components, "dimensions...")
+        # pca = PCA(n_components=n_components)
+
+        # print("Transforming with PCA...")
+        # pca.fit(x_train)
+        # x_train = pca.transform(x_train)
+        # x_test = pca.transform(x_test)
+
+        # principal_df = pd.DataFrame(pca.components_,columns=df[df.columns[0:]].columns)
+        # principal_df.to_csv('./TSX_dfs/principals.csv')
+
+    return x_train, x_test, y_train, y_test    
+
+
 if __name__ == "__main__":
     # df = generate_adjclose_df("./tickers/ETFTickers.pickle")
     df = import_dataframe("temp3","./tickers/TSXTickers.pickle")
     # df = add_indicators(df)
     # df = add_future_vision(df, 1, -1)
     # df = add_pct_change(df)
-    df = add_historic_indicators(df)
+    # df = add_historic_indicators(df)
     # analyse_df(df, "2019-11-13")
