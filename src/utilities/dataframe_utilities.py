@@ -55,7 +55,7 @@ def find_dataframe(ticker_name):
             print(err)
             break
     if not found:
-        return None
+        return None, None
     else:
         return df, ticker_dataframe_path
 
