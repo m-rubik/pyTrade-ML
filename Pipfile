@@ -13,8 +13,8 @@ pandas-datareader = "*"
 alpha-vantage = "*"
 scikit-learn = "*"
 matplotlib = "*"
-mpl-finance = "*"
 ta = "*"
+tensorflow = "*"
 
 [requires]
 python_version = "3.7"

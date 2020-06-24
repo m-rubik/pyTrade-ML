@@ -54,8 +54,10 @@ class ModelManager():
         self.name = self.model_type + "_" + self.ticker
         self.df = dataframe_utilities.import_dataframe(
             self.ticker, enhanced=True)
-        self.df = dataframe_utilities.add_future_vision(
-            self.df, buy_threshold=1, sell_threshold=-1)
+        if "days_advance" in self.options.keys():
+            self.df = dataframe_utilities.add_future_vision(self.df, buy_threshold=0.5, sell_threshold=-0.5, days_advance=self.options["days_advance"])
+        else:
+            self.df = dataframe_utilities.add_future_vision(self.df)
 
         self.dispatch = {
             "mlp": self.generate_mlp,
@@ -70,8 +72,10 @@ class ModelManager():
         by utilizing a dispatch table.
         """
 
-        self.X_train, self.X_test, self.y_train, self.y_test = dataframe_utilities.generate_featuresets(
-            self.df)
+        if "days_advance" in self.options.keys():
+            self.X_train, self.X_test, self.y_train, self.y_test = dataframe_utilities.generate_featuresets(self.df, days_advance=self.options["days_advance"])
+        else:
+            self.X_train, self.X_test, self.y_train, self.y_test = dataframe_utilities.generate_featuresets(self.df)
         self.dispatch[self.model_type]()
 
     def generate_mlp(self):
@@ -162,7 +166,7 @@ class ModelManager():
         print(self.clf.score(self.X_test, self.y_test))
         self.test_model()
 
-    def test_model(self, save_threshold=50):
+    def test_model(self, save_threshold=45):
         """
         Method for testing the performance of
         any given model.
@@ -277,15 +281,16 @@ def import_model(model_name):
 
 
 if __name__ == "__main__":
+    # AVAILABLE MODEL TYPES:
+    # mlp, adaboost, voting, bagging
 
-    ticker = "XUU"
+    ticker = "XIC"
 
-    model_manager = ModelManager(
-        ticker=ticker, model_type="voting", options={'gridsearch': True})
+    model_manager = ModelManager(ticker=ticker, model_type="mlp", options={'gridsearch': True, 'days_advance': 1})
     model_manager.generate_model()
 
-    # model_manager = import_model("mlp_HEXO_57")
+    # model_manager = import_model("mlp_XIC_56")
     # model_manager.predict_today()
 
-    # plot_confusion_matrix(model_manager.confusion_matrix)
-    # plot_predictions(model_manager.y_pred, model_manager.y_test)
+    plot_confusion_matrix(model_manager.confusion_matrix)
+    plot_predictions(model_manager.y_pred, model_manager.y_test)

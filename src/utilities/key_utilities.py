@@ -65,4 +65,4 @@ def unittest():
 
 if __name__ == "__main__":
     # add_key("XXXXXXXXXXXXXXXXX")
-    load_key()
+    print(load_key())

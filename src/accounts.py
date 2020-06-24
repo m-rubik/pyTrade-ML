@@ -16,6 +16,7 @@ import logging
 import os
 import shutil
 import pandas as pd
+from src.utilities.dataframe_utilities import import_dataframe
 
 
 class Account():
@@ -29,6 +30,7 @@ class Account():
     securities: dict = {}
     balance: int = 0
     logger = None
+    dataframes: dict = {}
 
     def __init__(self, balance_in_cash=0, balance_in_securities=0, securities=dict(), broker_fee=0, name="Default"):
 
@@ -210,6 +212,11 @@ class Account():
         of the securities held.
         """
 
+        # Update dictionary containing all necessary df
+        for security in self.securities.keys():
+            if security not in self.dataframes.keys():
+                self.dataframes[security] = import_dataframe(security, enhanced=True)
+
         if today is None:
             # If today is a weekend, go back to the friday
             today = datetime.datetime.today()
@@ -223,13 +230,7 @@ class Account():
             today = today.strftime("%Y-%m-%d")
         self.balance_in_securities = 0
         for security, quantity in self.securities.items():
-            datafolder = './dataframes/ETF/'
-            tickerData = datafolder+security+'.csv'
-            df = pd.read_csv(tickerData, parse_dates=True, index_col=0)
-            # TODO: Bug where the df.loc call returns a series...?
-            self.balance_in_securities += (
-                df.loc[today, "5. adjusted close"]) * quantity
-            ##
+            self.balance_in_securities += (self.dataframes[security].loc[today, "5. adjusted close"]) * quantity
         self.balance_in_securities = round(self.balance_in_securities, 2)
         save_account(self)
 

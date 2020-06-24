@@ -331,27 +331,27 @@ def color_print(text):
     print(text)
 
 
-def add_future_vision(df, buy_threshold, sell_threshold):
+def add_future_vision(df, buy_threshold=1, sell_threshold=-1, days_advance=1):
 
     if 'correct_decision' not in df.keys():
         print("Adding future vision...")
         df['correct_decision'] = 0
-        for i in range(0, df.shape[0]-1):
-            tomorrow_close = df.iloc[i+1]['5. adjusted close']
-            today_close = df.iloc[i]['5. adjusted close']
-            tomorrow_low = df.iloc[i+1]['3. low']
+        for i in range(0, df.shape[0]-days_advance):
 
-            if tomorrow_close > today_close:
-                pct_change = (today_close / tomorrow_close) * 100
-            # elif tomorrow_close < today_close:
-            #     pct_change = -1 * (tomorrow_close / today_close) * 100
-            elif tomorrow_low < today_close:
-                pct_change = -1 * (tomorrow_low / today_close) * 100
+            ending_close = df.iloc[i+days_advance]['5. adjusted close']
+            # tomorrow_close = df.iloc[i+1]['5. adjusted close']
+            starting_close = df.iloc[i]['5. adjusted close']
+            ending_low = df.iloc[i+days_advance]['3. low']
+
+            if ending_close > starting_close:
+                pct_change = (starting_close / ending_close) * 100
+            elif ending_low < starting_close:
+                pct_change = -1 * (ending_low / starting_close) * 100
             else:
                 pct_change = 0
 
             if pct_change > buy_threshold:
-                df.iloc[i, df.columns.get_loc('correct_decision')] = 1
+                df.iloc[i, df.columns.get_loc('correct_decision')] = 1 # BUY
             elif pct_change < sell_threshold:
                 df.iloc[i, df.columns.get_loc('correct_decision')] = -1  # SELL
             else:
@@ -398,7 +398,7 @@ def add_pct_change(df):
     return df
 
 
-def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, pca_components=5, today=False):
+def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, pca_components=5, today=False, days_advance=1):
     from sklearn import preprocessing, decomposition
     from sklearn.preprocessing import StandardScaler
     from sklearn.model_selection import train_test_split
@@ -427,8 +427,8 @@ def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, p
             x_test = scaler.fit_transform(x_test)
         else:
             # Ignore the most recent value, since we don't know what tomorrow will bring
-            X = X[:-1]
-            y = y[:-1]
+            X = X[:-days_advance]
+            y = y[:-days_advance]
             x_train, x_test, y_train, y_test = train_test_split(
                 X, y, train_size=train_size, random_state=random_state, shuffle=shuffle)
             print("Normalizing feature set...")
@@ -454,7 +454,7 @@ if __name__ == "__main__":
     # df = generate_adjclose_df("./tickers/ETFTickers.pickle")
     df = import_dataframe("temp3", "./tickers/TSXTickers.pickle")
     # df = add_indicators(df)
-    # df = add_future_vision(df, 1, -1)
+    # df = add_future_vision(df)
     # df = add_pct_change(df)
     # df = add_historic_indicators(df)
     # analyse_df(df, "2019-11-13")

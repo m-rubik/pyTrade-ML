@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import src.utilities.dataframe_utilities as dataframe_utilities
-from mpl_finance import candlestick_ohlc
 import matplotlib.dates as mdates
 from matplotlib import style
 from pandas.plotting import register_matplotlib_converters
@@ -46,6 +45,8 @@ def generate_correlation_plot(df, name="correlation", starting_date=None, show=F
 
 def plot_dataframe(df, ticker, name=None, plot=True, starting_date=None):
 
+    from mplfinance import candlestick_ohlc
+
     df = dataframe_utilities.add_indicators(df)
 
     if starting_date is not None:
@@ -73,7 +74,7 @@ def plot_dataframe(df, ticker, name=None, plot=True, starting_date=None):
 
     ax1.xaxis_date()
 
-    candlestick_ohlc(ax1, df_ohlc.values, width=1, colorup='g')
+    candlestick_ohlc(ax1, df_ohlc.values, width=1, colorup='#77d879', colordown='#db3f3f')
     ax1.set_xlabel('Time')
     ax1.set_ylabel('Price per Share (USD)')
     titleAX1 = 'Historic Share Price of ' + ticker

@@ -17,11 +17,11 @@ def get_data_from_alphaVantage(key, reload=False, tickerFile="./tickers/ETFTicke
         tickers = ticker_utilities.import_tickers(tickerFile)
 
     if tickerFile == "./tickers/sp500tickers.pickle":
-        folderName = 'sp500_dfs'
+        folderName = 'dataframes/sp500'
     elif tickerFile == "./tickers/ETFTickers.pickle":
-        folderName = 'ETF_dfs'
+        folderName = 'dataframes/ETF'
     elif tickerFile == "./tickers/TSXTickers.pickle":
-        folderName = "TSX_dfs"
+        folderName = "dataframes/TSX"
     else:
         return 1
 
@@ -134,4 +134,4 @@ def cleanup_zeros(df):
 
 if __name__ == "__main__":
     key = load_key()
-    get_data_from_alphaVantage(key, True, "./tickers/TSXTickers.pickle")
+    get_data_from_alphaVantage(key, True, "./tickers/ETFTickers.pickle")
