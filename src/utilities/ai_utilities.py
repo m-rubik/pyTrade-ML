@@ -55,7 +55,7 @@ class ModelManager():
         self.df = dataframe_utilities.import_dataframe(
             self.ticker, enhanced=True)
         if "days_advance" in self.options.keys():
-            self.df = dataframe_utilities.add_future_vision(self.df, buy_threshold=0.5, sell_threshold=-0.5, days_advance=self.options["days_advance"])
+            self.df = dataframe_utilities.add_future_vision(self.df, buy_threshold=0.02, sell_threshold=-0.02, days_advance=self.options["days_advance"])
         else:
             self.df = dataframe_utilities.add_future_vision(self.df)
 
