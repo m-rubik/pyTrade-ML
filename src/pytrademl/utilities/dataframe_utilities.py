@@ -3,7 +3,7 @@ import ta
 import pandas as pd
 import numpy as np
 import datetime
-import src.utilities.ticker_utilities as ticker_utilities
+import pytrademl.utilities.ticker_utilities as ticker_utilities
 
 
 def import_dataframe(ticker, starting_date=None, enhanced=False):

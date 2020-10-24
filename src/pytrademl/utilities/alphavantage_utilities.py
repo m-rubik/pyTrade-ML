@@ -1,7 +1,7 @@
 
-import src.utilities.dataframe_utilities as dataframe_utilities
-import src.utilities.ticker_utilities as ticker_utilities
-from src.utilities.key_utilities import load_key
+import pytrademl.utilities.dataframe_utilities as dataframe_utilities
+import pytrademl.utilities.ticker_utilities as ticker_utilities
+from pytrademl.utilities.key_utilities import load_key
 import os
 import time
 import datetime

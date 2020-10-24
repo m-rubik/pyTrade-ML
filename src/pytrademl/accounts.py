@@ -16,7 +16,7 @@ import logging
 import os
 import shutil
 import pandas as pd
-from src.utilities.dataframe_utilities import import_dataframe
+from pytrademl.utilities.dataframe_utilities import import_dataframe
 
 
 class Account():
@@ -331,7 +331,7 @@ def delete_account(account):
 
 if __name__ == "__main__":
 
-    from src.utilities.plot_utilities import plot_account, plot_account_history
+    from pytrademl.utilities.plot_utilities import plot_account, plot_account_history
 
     myAccount = open_account("FutureVisionStrat", 0, 0, {}, 0)
     plot_account_history(myAccount)

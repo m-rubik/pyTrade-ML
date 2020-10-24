@@ -5,7 +5,7 @@ import sys
 import pickle
 import os
 import pandas as pd
-import src.utilities.dataframe_utilities as dataframe_utilities
+import pytrademl.utilities.dataframe_utilities as dataframe_utilities
 
 class QLearner():
 	def __init__(self, ticker, options):

@@ -8,7 +8,7 @@ All functions related to the generation and storing of AlphaVantage keys.
 """
 
 import os
-from src.utilities.pickle_utilities import import_object, export_object
+from pytrademl.utilities.pickle_utilities import import_object, export_object
 
 
 def add_key(key):

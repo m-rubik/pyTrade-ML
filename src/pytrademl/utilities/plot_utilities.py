@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import src.utilities.dataframe_utilities as dataframe_utilities
+import pytrademl.utilities.dataframe_utilities as dataframe_utilities
 import matplotlib.dates as mdates
 from matplotlib import style
 from pandas.plotting import register_matplotlib_converters
@@ -308,7 +308,7 @@ def plot_predictions(predictions, y_test):
 
 
 if __name__ == "__main__":
-    import src.utilities.dataframe_utilities as dataframe_utilities
+    import pytrademl.utilities.dataframe_utilities as dataframe_utilities
 
     # df = dataframe_utilities.generate_adjclose_df("./tickers/ETFTickers.pickle")
     # generate_correlation_plot(df=df, name="correlation_2019-04-11", starting_date="2019-04-11", show=True, save=True)

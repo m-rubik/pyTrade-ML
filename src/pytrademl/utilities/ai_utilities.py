@@ -20,8 +20,8 @@ Date            Accuracy            Type                                Ticker
 import pickle
 import os
 import pandas as pd
-import src.utilities.dataframe_utilities as dataframe_utilities
-from src.utilities.plot_utilities import plot_confusion_matrix, plot_predictions
+import pytrademl.utilities.dataframe_utilities as dataframe_utilities
+from pytrademl.utilities.plot_utilities import plot_confusion_matrix, plot_predictions
 from sklearn import metrics
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.neural_network import MLPClassifier
