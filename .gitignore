@@ -5,6 +5,7 @@
 /pandas/
 /accounts/
 /models/
+/src/q_learning/models/
 
 /src/strategies/*
 !src/strategies
