@@ -3,6 +3,7 @@ Contains all pickling functions.
 """
 
 import pickle
+from pathlib import Path
 
 
 def import_object(filename):
@@ -11,14 +12,12 @@ def import_object(filename):
     @param filename: Path of the pickled object
     """
 
-    try:
-        with open(filename, 'rb+') as f:
+    if Path(filename).is_file():
+        with open(filename, 'rb') as f:
             data = pickle.load(f)
-    except Exception as e:
-        print(e)
+            return data
+    else:
         return None
-    return data
-
 
 def export_object(filename, data):
     """!
@@ -35,7 +34,6 @@ def export_object(filename, data):
         return 1
     return 0
 
-
 def unit_test():
     import os
     import random
@@ -43,7 +41,6 @@ def unit_test():
     export_object("./database/test_database", data)
     assert import_object("./database/test_database") == data
     os.remove("./database/test_database")
-
 
 if __name__ == "__main__":
     unit_test()

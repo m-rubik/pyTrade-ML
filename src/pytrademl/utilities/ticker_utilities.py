@@ -1,31 +1,32 @@
+"""
+TODO: For ETFs, it would be cool to add the sector weighting.
+For example: VCN would have something like
+# {"Financials": 0.362,
+"Oil & Gas": 0.172,
+etc
+to show the percent holdings of each sector
+"""
+
 import pickle
 import requests
 import bs4 as bs
+from pytrademl.utilities.object_utilities import export_object
+from pathlib import Path
 
-# TODO: For ETFs, it would be cool to add the sector weighting.
-# For example: VCN would have something like
-# {"Financials": 0.362,
-#  "Oil & Gas": 0.172,
-#  etc
-# to show the percent holdings of each sector
+def obtain_all_tickers():
+    ticker_file_list = ['ETFTickers', 'sp500Tickers', 'TSXTickers']
+    for ticker_file in ticker_file_list:
+        obtain_tickers(ticker_file)
 
+def obtain_tickers(ticker_file="ETFTickers"):
+    """
+    TODO: Improve the method for obtaining ETFs
+    """
 
-def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
-    if ticker_file == "./tickers/sp500tickers.pickle":
-        resp = requests.get(
-            'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-        soup = bs.BeautifulSoup(resp.text, 'lxml')
-        table = soup.find('table', {'class': 'wikitable sortable'})
-        tickers = []
-        for row in table.findAll('tr')[1:]:
-            security = row.findAll('td')[0].text
-            symbol = row.findAll('td')[1].text
-            category = row.findAll('td')[3].text
-            pair = [security, symbol, category]
-            tickers.append(pair)
+    root_dir = Path().resolve().parent / "tickers"
+    root_dir.mkdir(parents=True, exist_ok=True)
 
-        export_tickers(tickers, ticker_file)
-    elif ticker_file == "./tickers/ETFTickers.pickle":
+    if 'ETF' in ticker_file:
         tickers = []
         # for i in range(1,59):
         #     print(i)
@@ -39,16 +40,28 @@ def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
         #         pair = [security,symbol,category]
         #         tickers.append(pair)
         tickers.append(['BMO AGGREGATE BOND INDEX ETF', 'ZAG', ''])
-        tickers.append(
-            ['ISHARES CORE S&P U.S. TOTAL MARKEY INDEX ETF', 'XUU', ''])
+        tickers.append(['ISHARES CORE S&P U.S. TOTAL MARKEY INDEX ETF', 'XUU', ''])
         tickers.append(['ISHARES CORE MSCI EMG MKTS IMI ETF', 'XEC', ''])
         tickers.append([' ISHARES CORE SP TSX CAPD COM INX ETF', 'XIC', ''])
         tickers.append(['ISHARES CORE MSCI EAFE IMI INDEX ETF', 'XEF', ''])
         tickers.append(['VANGUARD ALL CAP INDEX ETF UNITS', 'VCN', ''])
-        tickers.append(
-            ['VANGUARD CANADIAN AGGREGATE BOND INDEX ETF', 'VAB', ''])
-        export_tickers(tickers, ticker_file)
-    elif ticker_file == "./tickers/TSXTickers.pickle":
+        tickers.append(['VANGUARD CANADIAN AGGREGATE BOND INDEX ETF', 'VAB', ''])
+        export_object(root_dir / "ETFTickers.pickle" , tickers)
+        # export_tickers(tickers, ticker_file)
+    elif 'sp500' in ticker_file:
+        resp = requests.get(
+            'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+        soup = bs.BeautifulSoup(resp.text, 'lxml')
+        table = soup.find('table', {'class': 'wikitable sortable'})
+        tickers = []
+        for row in table.findAll('tr')[1:]:
+            security = row.findAll('td')[0].text
+            symbol = row.findAll('td')[1].text
+            category = row.findAll('td')[3].text
+            pair = [security, symbol, category]
+            tickers.append(pair)
+        export_object(root_dir / "sp500Tickers.pickle" , tickers)
+    elif 'TSX' in ticker_file:
         tickers = []
         tickers.append(['GREEN ORGANIC DUTCHMAN HOLDINGS INC', 'TGOD', ''])
         tickers.append(['AURORA CANABIS INC', 'ACB', ''])
@@ -56,24 +69,12 @@ def obtain_tickers(ticker_file="./tickers/ETFTickers.pickle"):
         tickers.append(['', 'WEED', ''])
         tickers.append(['', 'APHA', ''])
         tickers.append(['', 'OGI', ''])
-        export_tickers(tickers, ticker_file)
+        # export_tickers(tickers, ticker_file)
+        export_object(root_dir / "TSXTickers.pickle" , tickers)
     else:
         print("Unrecognized ticker file:", ticker_file)
         tickers = []
     return tickers
-
-
-def export_tickers(tickers, ticker_file="./tickers/ETFTickers.pickle"):
-    with open(ticker_file, "wb") as f:
-        pickle.dump(tickers, f)
-    return 0
-
-
-def import_tickers(ticker_file="./tickers/ETFTickers.pickle"):
-    with open(ticker_file, "rb") as f:
-        tickers = pickle.load(f)
-    return tickers
-
-
+ 
 if __name__ == "__main__":
-    tickers = obtain_tickers()
+    tickers = obtain_all_tickers()

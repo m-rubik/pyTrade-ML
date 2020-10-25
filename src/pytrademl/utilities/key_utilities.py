@@ -7,8 +7,7 @@ All functions related to the generation and storing of AlphaVantage keys.
 # https://alpha-vantage.readthedocs.io/en/latest/source/alpha_vantage.html#module-alpha_vantage.timeseries
 """
 
-import os
-from pytrademl.utilities.pickle_utilities import import_object, export_object
+from pytrademl.utilities.object_utilities import import_object, export_object
 
 
 def add_key(key):
