@@ -19,9 +19,9 @@ Date            Accuracy            Type                                Ticker
 
 import pickle
 import os
-import pandas as pd
 import pytrademl.utilities.dataframe_utilities as dataframe_utilities
 from pytrademl.utilities.plot_utilities import plot_confusion_matrix, plot_predictions
+from pytrademl.utilities.object_utilities import import_object, export_object
 from sklearn import metrics
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.neural_network import MLPClassifier
@@ -30,6 +30,10 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report
 from sklearn.ensemble import VotingClassifier, RandomForestClassifier, AdaBoostClassifier, BaggingClassifier
 from sklearn.tree import DecisionTreeClassifier
+from pathlib import Path
+
+root_dir = Path(__file__).resolve().parent.parent / 'models'
+root_dir.mkdir(parents=True, exist_ok=True)
 
 
 class ModelManager():
@@ -52,8 +56,7 @@ class ModelManager():
         self.model_type = model_type
         self.options = options
         self.name = self.model_type + "_" + self.ticker
-        self.df = dataframe_utilities.import_dataframe(
-            self.ticker, enhanced=True)
+        self.df = dataframe_utilities.import_dataframe(self.ticker, enhanced=True)
         if "days_advance" in self.options.keys():
             self.df = dataframe_utilities.add_future_vision(self.df, buy_threshold=0.5, sell_threshold=-0.5, days_advance=self.options["days_advance"])
         else:
@@ -199,7 +202,9 @@ class ModelManager():
         if model_accuracy >= save_threshold:
             self.name = self.name+"_"+str(int(round(self.accuracy*100, 0)))
             print("Saving model as", self.name)
-            export_model(self)
+            # export_model(self)
+            model_file = (root_dir / model_manager.name).with_suffix('.pickle')
+            export_object(model_file, self)
 
     # def generate_lstm(self):
     #     from tensorflow.keras.models import Sequential
@@ -255,29 +260,29 @@ class ModelManager():
         #     print("HOLD probability: ", str(round(prob_per_class_dictionary[0][1]*100,2))+"%")
 
 
-def export_model(model_manager):
-    """
-    Function for exporting a model manager.
-    """
+# def export_model(model_manager):
+#     """
+#     Function for exporting a model manager.
+#     """
 
-    if not os.path.exists("./models/"):
-        os.makedirs("./models/")
-    model_file = "./models/"+model_manager.name+".pickle"
-    with open(model_file, "wb+") as f:
-        pickle.dump(model_manager, f)
-    return 0
+#     if not os.path.exists("./models/"):
+#         os.makedirs("./models/")
+#     model_file = "./models/"+model_manager.name+".pickle"
+#     with open(model_file, "wb+") as f:
+#         pickle.dump(model_manager, f)
+#     return 0
 
 
-def import_model(model_name):
-    """
-    Function for loading a serialized model
-    manager into runtime memory.
-    """
+# def import_model(model_name):
+#     """
+#     Function for loading a serialized model
+#     manager into runtime memory.
+#     """
 
-    model_file = "./models/"+model_name+".pickle"
-    with open(model_file, "rb") as f:
-        model = pickle.load(f)
-    return model
+#     model_file = "./models/"+model_name+".pickle"
+#     with open(model_file, "rb") as f:
+#         model = pickle.load(f)
+#     return model
 
 
 if __name__ == "__main__":
@@ -289,7 +294,8 @@ if __name__ == "__main__":
     model_manager = ModelManager(ticker=ticker, model_type="mlp", options={'gridsearch': True, 'days_advance': 1})
     model_manager.generate_model()
 
-    # model_manager = import_model("mlp_XIC_56")
+    # model_file = (root_dir / "mlp_XIC_56").with_suffix('.pickle')
+    # model_manager = import_object(model_file)
     # model_manager.predict_today()
 
     plot_confusion_matrix(model_manager.confusion_matrix)

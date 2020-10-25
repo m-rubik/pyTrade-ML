@@ -4,7 +4,12 @@ import pandas as pd
 import numpy as np
 import datetime
 import pytrademl.utilities.ticker_utilities as ticker_utilities
-
+from pytrademl.utilities.object_utilities import import_object
+from sklearn import preprocessing, decomposition
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from pathlib import Path
+root_dir = Path(__file__).resolve().parent.parent
 
 def import_dataframe(ticker, starting_date=None, enhanced=False):
     """
@@ -13,7 +18,7 @@ def import_dataframe(ticker, starting_date=None, enhanced=False):
 
     if enhanced:
         df, path = find_dataframe(ticker+'_enhanced.csv')
-        if df is not None:
+        if df != None:
             if starting_date is not None:
                 try:
                     df = df.truncate(before=starting_date)
@@ -29,7 +34,9 @@ def import_dataframe(ticker, starting_date=None, enhanced=False):
             df = add_indicators(df)
             df = add_historic_indicators(df)
             df = add_pct_change(df)
-            df.to_csv(path.split(ticker+'.csv')[0]+ticker+"_enhanced.csv")
+            df_dir = path.parent
+            df_name = path.stem + "_enhanced"
+            df.to_csv((df_dir / df_name).with_suffix('.csv'))
         if starting_date is not None:
             try:
                 df = df.truncate(before=starting_date)
@@ -41,18 +48,21 @@ def import_dataframe(ticker, starting_date=None, enhanced=False):
     else:
         return df
 
-
 def find_dataframe(ticker_name):
     found = False
-    for ticker_file in os.listdir('./tickers/'):
+    for ticker_file in (root_dir / 'tickers').iterdir():
+    # for ticker_file in os.listdir('./tickers/'):
         try:
-            name = ticker_file.split("tickers.pickle")[0]
-            ticker_dataframe_path = './dataframes/'+name+"/"+ticker_name
-            if os.path.exists(ticker_dataframe_path):
-                df = pd.read_csv(ticker_dataframe_path,
-                                 parse_dates=True, index_col=0)
-                found = True
-                break
+            if ticker_file.is_file():
+                name = ticker_file.stem.split("Tickers")[0]
+                ticker_dataframe_path = root_dir / 'dataframes' / name / ticker_name
+                # ticker_dataframe_path = './dataframes/'+name+"/"+ticker_name
+                if ticker_dataframe_path.is_file():
+                # if os.path.exists(ticker_dataframe_path):
+                    df = pd.read_csv(ticker_dataframe_path.resolve(),
+                                    parse_dates=True, index_col=0)
+                    found = True
+                    break
         except Exception as err:
             print(err)
             break
@@ -61,20 +71,17 @@ def find_dataframe(ticker_name):
     else:
         return df, ticker_dataframe_path
 
-
-def export_dataframe(df, name):
-    pass
-
-
-def generate_adjclose_df(ticker_file="./tickers/ETFTickers.pickle"):
+def generate_adjclose_df(ticker_file="ETFTickers"):
     """
     Generate a dataframe whose columns are:
     date, symbol_1, symbol_2, symbol_3, etc...
     The values in the symbol columns are the adjusted close values of that date.
+
+    TODO: fix this path stuff
     """
 
     print("Generating the master adjusted close dataframe...")
-    tickers = ticker_utilities.import_tickers(ticker_file)
+    tickers = import_object((root_dir / ticker_file).with_suffix('.pickle'))
     main_df = pd.DataFrame()
     for _, ticker in enumerate(tickers):
         if ticker_file == "./tickers/sp500tickers.pickle":
@@ -109,7 +116,6 @@ def generate_adjclose_df(ticker_file="./tickers/ETFTickers.pickle"):
         print("Unrecognized ticker file:", ticker_file)
 
     return main_df
-
 
 def add_indicators(df):
 
@@ -146,9 +152,7 @@ def add_indicators(df):
 
     return df
 
-
 def analyse_volume_indicators(df, date):
-
     df_day = df.loc[date]
 
     # TODO: Learn about A/D, OBV, FI, EM, VPT, NVI
@@ -160,7 +164,6 @@ def analyse_volume_indicators(df, date):
         print("CMF SELL pressure at " + str(sell_pressure) + "%")
     else:
         print("CMF NEUTRAL")
-
 
 def analyse_volatility_indicators(df, date):
 
@@ -187,7 +190,6 @@ def analyse_volatility_indicators(df, date):
         print("Donchian Channel Low Breakout: SELL")
     else:
         print("Donchian Channel NEUTRAL")
-
 
 def analyse_trend_indicators(df, date):
 
@@ -250,7 +252,6 @@ def analyse_trend_indicators(df, date):
     else:
         print("AROON signal NEUTRAL")
 
-
 def analyse_momentum_indicators(df, date):
     df_day = df.loc[date]
     yesterday = (datetime.datetime.strptime(date, "%Y-%m-%d") -
@@ -304,7 +305,6 @@ def analyse_momentum_indicators(df, date):
 
     # TODO: Add ao
 
-
 def analyse_df(df, date):
     # Analyse volume indicators
     print("==== VOLUME ANALYSIS ====")
@@ -321,7 +321,6 @@ def analyse_df(df, date):
     # Analyse momentum indicators
     print("==== MOMENTUM ANALYSIS ====")
     analyse_momentum_indicators(df, date)
-
 
 def add_future_vision(df, buy_threshold=1, sell_threshold=-1, days_advance=1):
 
@@ -349,7 +348,6 @@ def add_future_vision(df, buy_threshold=1, sell_threshold=-1, days_advance=1):
             else:
                 df.iloc[i, df.columns.get_loc('correct_decision')] = 0  # HOLD
     return df
-
 
 def add_historic_indicators(df):
     """
@@ -381,7 +379,6 @@ def add_historic_indicators(df):
     # df.to_csv('./TSX_dfs/messed.csv')
     return df
 
-
 def add_pct_change(df):
     print("Adding percent change in adjusted close prices...")
     # Percent change from the day before
@@ -390,12 +387,7 @@ def add_pct_change(df):
     df.fillna(0, inplace=True)
     return df
 
-
 def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, pca_components=5, today=False, days_advance=1):
-    from sklearn import preprocessing, decomposition
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.model_selection import train_test_split
-
     print("Generating feature set...")
     y = df['correct_decision'].values
     df = df.loc[:, df.columns != 'correct_decision']
@@ -442,10 +434,9 @@ def generate_featuresets(df, train_size=0.9, random_state=None, shuffle=False, p
 
     return x_train, x_test, y_train, y_test
 
-
 if __name__ == "__main__":
-    # df = generate_adjclose_df("./tickers/ETFTickers.pickle")
-    df = import_dataframe("temp3", "./tickers/TSXTickers.pickle")
+    # df = generate_adjclose_df()
+    df = import_dataframe("temp3", "TSXTickers")
     # df = add_indicators(df)
     # df = add_future_vision(df)
     # df = add_pct_change(df)

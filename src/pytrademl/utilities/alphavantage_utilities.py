@@ -1,35 +1,24 @@
-import os
 import time
 import datetime
 import pandas as pd
-import pytrademl.utilities.dataframe_utilities as dataframe_utilities
-import pytrademl.utilities.ticker_utilities as ticker_utilities
+from pytrademl.utilities.ticker_utilities import obtain_tickers
+from pytrademl.utilities.object_utilities import import_object
 from pytrademl.utilities.key_utilities import load_key
 from alpha_vantage.timeseries import TimeSeries
 from pathlib import Path
 
+
 def get_data_from_alphaVantage(key, reload=False, ticker_file="ETFTickers", symbol_market="TSX", output_size="full"):
 
-    root_dir = Path().resolve().parent
+    root_dir = Path(__file__).resolve().parent.parent
 
     if reload:
-        tickers = ticker_utilities.obtain_tickers(ticker_file)
+        tickers = obtain_tickers(ticker_file)
     else:
-        tickers = ticker_utilities.import_object((root_dir / ticker_file).with_suffix('.pickle'))
+        tickers = import_object((root_dir / ticker_file).with_suffix('.pickle'))
 
-    folder_name = root_dir / 'dataframes' / ticker_file.split("Tickers")[0]
+    folder_name = root_dir / 'dataframes' / (ticker_file.split("Tickers")[0])
     folder_name.mkdir(parents=True, exist_ok=True)
-
-    # if ticker_file == "./tickers/sp500tickers.pickle":
-    #     folder_name = 'dataframes/sp500'
-    # elif ticker_file == "./tickers/ETFTickers.pickle":
-    #     folder_name = 'dataframes/ETF'
-    # elif ticker_file == "./tickers/TSXTickers.pickle":
-    #     folder_name = "dataframes/TSX"
-    # else:
-    #     return 1
-    # if not os.path.exists(folder_name):
-    #     os.makedirs(folder_name)
 
     ts = TimeSeries(key=key, output_format='pandas')
 

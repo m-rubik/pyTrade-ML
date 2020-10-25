@@ -310,7 +310,7 @@ def plot_predictions(predictions, y_test):
 if __name__ == "__main__":
     import pytrademl.utilities.dataframe_utilities as dataframe_utilities
 
-    # df = dataframe_utilities.generate_adjclose_df("./tickers/ETFTickers.pickle")
+    # df = dataframe_utilities.generate_adjclose_df()
     # generate_correlation_plot(df=df, name="correlation_2019-04-11", starting_date="2019-04-11", show=True, save=True)
 
     df = dataframe_utilities.import_dataframe("XIC")

@@ -23,7 +23,7 @@ def obtain_tickers(ticker_file="ETFTickers"):
     TODO: Improve the method for obtaining ETFs
     """
 
-    root_dir = Path().resolve().parent / "tickers"
+    root_dir = Path(__file__).resolve().parent.parent / "tickers"
     root_dir.mkdir(parents=True, exist_ok=True)
 
     if 'ETF' in ticker_file:
