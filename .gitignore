@@ -22,8 +22,6 @@ my_account.py
 
 KEYS
 
-Pipfile.lock
-
 /.vscode/
 
 *.egg-info
