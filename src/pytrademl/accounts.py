@@ -32,11 +32,12 @@ class Account():
     logger = None
     dataframes: dict = {}
 
-    def __init__(self, balance_in_cash=0, balance_in_securities=0, securities=dict(), broker_fee=0, name="Default"):
+    def __init__(self, balance_in_cash=0, balance_in_securities=0, securities=dict(), broker_fee=0, name="Default", max_cash_swing_pct=0.9):
 
         self.name = name
         self.securities = securities
         self.broker_fee = broker_fee
+        self.max_cash_swing_pct = max_cash_swing_pct
         self.balance_in_securities = balance_in_securities
         self.balance_in_cash = balance_in_cash
         self.balance = self.balance_in_cash + self.balance_in_securities
@@ -120,14 +121,18 @@ class Account():
 
         security = transaction_info['security']
         if transaction_info['quantity'] == "MAX":
-            if self.balance_in_cash >= 10000:  # Never spend more than 10000 dollars
-                # This automatically rounds down to nearest int
-                transaction_info['quantity'] = int(
-                    10000/transaction_info['value'])
-            else:
-                # This automatically rounds down to nearest int
-                transaction_info['quantity'] = int(
-                    self.balance_in_cash / transaction_info['value'])
+            max_cash_buy = self.max_cash_swing_pct * self.balance_in_cash
+            transaction_info['quantity'] = int(max_cash_buy/transaction_info['value'])
+
+            # if self.balance_in_cash >= 10000:  # Never spend more than 10000 dollars
+            #     # This automatically rounds down to nearest int
+            #     transaction_info['quantity'] = int(
+            #         10000/transaction_info['value'])
+            # else:
+            #     # This automatically rounds down to nearest int
+            #     transaction_info['quantity'] = int(
+            #         self.balance_in_cash / transaction_info['value'])
+        
         buyCost = round(transaction_info['quantity']
                         * transaction_info['value'], 2)
         if self.balance_in_cash >= buyCost:
