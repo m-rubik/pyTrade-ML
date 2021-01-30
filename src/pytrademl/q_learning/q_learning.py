@@ -1,5 +1,5 @@
-from agent.agent import Agent, QAgent
-from functions import *
+from pytrademl.q_learning.agent.agent import QAgent
+from pytrademl.q_learning.functions import get_q_state, formatPrice, getState
 import sys
 
 import pickle
@@ -12,10 +12,10 @@ class QLearner():
 		self.ticker = ticker
 		self.options = options
 		self.df = dataframe_utilities.import_dataframe(self.ticker, enhanced=True)
-		if "days_advance" in self.options.keys():
-			self.df = dataframe_utilities.add_future_vision(self.df, buy_threshold=0.5, sell_threshold=-0.5, days_advance=self.options["days_advance"])
-		else:
-			self.df = dataframe_utilities.add_future_vision(self.df)
+		# if "days_advance" in self.options.keys():
+		# 	self.df = dataframe_utilities.add_future_vision(self.df, buy_threshold=0.5, sell_threshold=-0.5, days_advance=self.options["days_advance"])
+		# else:
+		# 	self.df = dataframe_utilities.add_future_vision(self.df)
 		self.state_size = len(self.df.columns)
 
 	def train(self, epoch_count=100, batch_size=32, resume_training=None):
@@ -37,7 +37,11 @@ class QLearner():
 		for epoch in range(self.starting_epoch, self.end_epoch):
 			self.epoch = epoch
 			print("Running epoch " + str(self.epoch) + "/" + str(self.end_epoch) + "...")
+
+			# self.state = getState(self.df, 0, self.state_size + 1)
 			self.state = get_q_state(self.df.iloc[0])
+			# print(self.state)
+
 			total_profit = 0
 			self.agent.inventory = []
 			length = len(self.df)-1
@@ -45,11 +49,12 @@ class QLearner():
 			for day in range(len(self.df)-1):
 
 				if day % 100 == 0:
-					print("Processing entry", day, "/", length)
+					print("Processing day", day, "/", length)
 
 				action = self.agent.act(self.state)
 
-				self.next_state =  get_q_state(self.df.iloc[day+1])
+				# self.next_state = getState(self.df.iloc[0], day+1, self.state_size + 1)
+				self.next_state = get_q_state(self.df.iloc[day+1])
 				reward = 0
 
 				if action == 1: # buy
@@ -81,6 +86,6 @@ class QLearner():
 		pass
 
 if __name__ == "__main__":
-	# main("^GSPC", 10, 1)
 	learner = QLearner("XIC", {})
-	learner.train(epoch_count=10, resume_training="XIC_model_ep10")
+	# learner.train(epoch_count=10, resume_training="XIC_model_ep10")
+	learner.train(epoch_count=10, resume_training=None)
