@@ -24,6 +24,14 @@ def sigmoid(x):
 
 # returns an n-day state representation ending at time t
 def getState(data, t, n):
+	"""
+	t = 0
+	n = 10
+	d = -10
+	[1 ,2, 3, 4, 5, 6, 7, 8]
+	block = 10 * [1] + 
+	"""
+	data = data.to_numpy()
 	print(t)
 	print(n)
 	d = t - n + 1
@@ -33,14 +41,21 @@ def getState(data, t, n):
 	for i in range(n - 1):
 		res.append(sigmoid(block[i + 1] - block[i]))
 	print(res)
-
 	return np.array([res])
 
 def get_q_state(day):
-	data = day.to_numpy()
-	res = []
-	for i in range(len(data)-1):
-		res.append(sigmoid(data[i + 1] - data[i]))
+	"""
+	In the current implementation,
+	the state is simply the technical indicators of the day
+	"""
+
+	# data = day.to_numpy()
+	# res = []
+	# for i in range(len(data)-1):
+	# 	res.append(sigmoid(data[i + 1] - data[i]))
 	# print(res)
-	return np.array([res])
+	# return np.array([res])
+	# print(data)
+	# print(data.shape)
+	return day.values
 
