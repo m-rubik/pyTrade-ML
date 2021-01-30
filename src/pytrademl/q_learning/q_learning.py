@@ -1,7 +1,6 @@
 from pytrademl.q_learning.agent.agent import QAgent
 from pytrademl.q_learning.functions import get_q_state, formatPrice, getState
 import sys
-
 import pickle
 import os
 import pandas as pd
@@ -30,10 +29,11 @@ class QLearner():
 		else:
 			self.agent = QAgent(self.state_size)
 			self.starting_epoch = 0
-		# self.agent = QAgent(163)
 
 		self.end_epoch = self.starting_epoch+self.epoch_count
 		print("Running training from epoch", self.starting_epoch, "to", self.end_epoch)
+
+		data = []
 		for epoch in range(self.starting_epoch, self.end_epoch):
 			self.epoch = epoch
 			print("Running epoch " + str(self.epoch) + "/" + str(self.end_epoch) + "...")
@@ -63,7 +63,8 @@ class QLearner():
 
 				elif action == 2 and len(self.agent.inventory) > 0: # sell
 					bought_price = self.agent.inventory.pop(0)
-					reward = max(self.df.iloc[day]['5. adjusted close'] - bought_price, 0)
+					# reward = max(self.df.iloc[day]['5. adjusted close'] - bought_price, 0)
+					reward = self.df.iloc[day]['5. adjusted close'] - bought_price
 					total_profit += self.df.iloc[day]['5. adjusted close'] - bought_price
 					# print("Sell: " + formatPrice(self.df.iloc[day]['5. adjusted close']) + " | Profit: " + formatPrice(self.df.iloc[day]['5. adjusted close'] - bought_price))
 
@@ -78,14 +79,19 @@ class QLearner():
 
 				if len(self.agent.memory) > self.batch_size:
 					self.agent.expReplay(self.batch_size)
+					# print("Total Profit: " + formatPrice(total_profit))
+					data.append(total_profit)
 
-			# if e % 10 == 0:
-			self.agent.model.save("./src/q_learning/models/"+self.ticker+"_model_ep" + str(self.epoch) + "/")
+					# import matplotlib.pyplot as plt
+					# plt.plot(data)
+					# plt.pause(0.05)
+
+			self.agent.model.save("./src/pytrademl/q_learning/models/"+self.ticker+"_qmodel_ep" + str(self.epoch) + "/")
 
 	def evaluate(self):
 		pass
 
 if __name__ == "__main__":
 	learner = QLearner("XIC", {})
-	# learner.train(epoch_count=10, resume_training="XIC_model_ep10")
-	learner.train(epoch_count=10, resume_training=None)
+	learner.train(epoch_count=10, resume_training="XIC_qmodel_ep3")
+	# learner.train(epoch_count=10, resume_training=None)
