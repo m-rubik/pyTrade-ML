@@ -17,8 +17,8 @@ def import_dataframe(ticker, starting_date=None, enhanced=False):
     """
 
     if enhanced:
-        df, path = find_dataframe(ticker+'_enhanced.csv')
-        if df != None:
+        df, path, found = find_dataframe(ticker+'_enhanced.csv')
+        if found:
             if starting_date is not None:
                 try:
                     df = df.truncate(before=starting_date)
@@ -28,8 +28,8 @@ def import_dataframe(ticker, starting_date=None, enhanced=False):
                     return df
             else:
                 return df
-    df, path = find_dataframe(ticker+'.csv')
-    if df is not None:
+    df, path, found = find_dataframe(ticker+'.csv')
+    if found:
         if enhanced:
             df = add_indicators(df)
             df = add_historic_indicators(df)
@@ -50,6 +50,8 @@ def import_dataframe(ticker, starting_date=None, enhanced=False):
 
 def find_dataframe(ticker_name):
     found = False
+    df = None
+    ticker_dataframe_path = None
     for ticker_file in (root_dir / 'tickers').iterdir():
     # for ticker_file in os.listdir('./tickers/'):
         try:
@@ -67,9 +69,9 @@ def find_dataframe(ticker_name):
             print(err)
             break
     if not found:
-        return None, None
+        return df, ticker_dataframe_path, False
     else:
-        return df, ticker_dataframe_path
+        return df, ticker_dataframe_path, True
 
 def generate_adjclose_df(ticker_file="ETFTickers"):
     """
@@ -367,7 +369,7 @@ def add_historic_indicators(df):
             df.loc[index, 'yesterday_'+column] = df_yesterday[column]
         counter += 1
         if not counter % 50:
-            print("Adding history information... Completed:", counter, "of", total)
+            print("Adding yesterday's information... Completed:", counter, "of", total)
         df_yesterday = row
     # Percent change from the day before
     df['pct_change_macd_diff'] = df['trend_macd_diff'].pct_change()*100
@@ -375,7 +377,7 @@ def add_historic_indicators(df):
     df['pct_change_momentum_rsi'] = df['momentum_rsi'].pct_change()*100
     df = df.replace([np.inf, -np.inf], 0)
     df.fillna(0, inplace=True)
-    print('Finished adding historic information.')
+    print("Finished adding yesterday's information.")
     # df.to_csv('./TSX_dfs/messed.csv')
     return df
 
