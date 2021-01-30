@@ -9,8 +9,5 @@ Heavily inspired by [this](https://www.youtube.com/watch?v=2BrpKpWwT2A&list=PLQV
 2. Open the directory:
 ```cd pyTrade-ML```
 
-3. If you don't already have pipenv, install it:
-```pip install pipenv```
-
-4. Install the virtual environment from the Pipfile:
-```pipenv install --sequential```
+3. pip install (editable if you want to edit)
+```pip install --editable .```
