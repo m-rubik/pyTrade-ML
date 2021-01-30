@@ -1,17 +1,10 @@
-/ETF_dfs/
-/stock_dfs/
-/test_dfs/
-/figures/
-/pandas/
-/accounts/
-/models/
+src/pytrademl/accounts/
+src/pytrademl/models/
 /src/q_learning/models/
 
-/src/strategies/*
-!src/strategies
-!/src/strategies/strategy_template.py
-
-my_account.py
+/src/pytrademl/strategies/*
+!src/pytrademl/strategies
+!/src/pytrademl/strategies/strategy_template.py
 
 *.csv
 *.pyc
