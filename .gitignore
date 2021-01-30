@@ -6,6 +6,8 @@ src/pytrademl/models/
 !src/pytrademl/strategies
 !/src/pytrademl/strategies/strategy_template.py
 
+src/pytrademl/q_learning/models/
+
 *.csv
 *.pyc
 *.pickle
